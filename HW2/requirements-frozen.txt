@@ -1,0 +1,19 @@
+atomicwrites==1.3.0
+attrs==19.1.0
+colorama==0.4.1
+docopt==0.6.2
+jsonpickle==0.9.6
+more-itertools==7.0.0
+munch==2.3.2
+numpy==1.16.2
+Pillow==6.0.0
+pluggy==0.9.0
+py==1.8.0
+py-cpuinfo==5.0.0
+pytest==4.4.1
+sacred===0.7.4-onurgu
+six==1.12.0
+-e git+git@github.com:newkozlukov/skt_deeplearning.git@d0a9423e43b8997d6f43591ef6487c8048e39702#egg=sktdl_tinyimagenet&subdirectory=HW2
+torch==1.0.1.post2
+torchvision==0.2.2.post3
+wrapt==1.11.1
