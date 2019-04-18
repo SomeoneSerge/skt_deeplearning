@@ -54,7 +54,7 @@ def evaluate(model, subset, device, _run):
         for X, y in dataset:
             y = y.to(device, non_blocking=True)
             X = X.to(device)
-            valid += (model(X).argmax(-1) == subset).sum().item()
+            correct += (model(X).argmax(-1) == subset).sum().item()
             total += int(X.shape[0])
     _run.log_scalar('{}.accuracy'.format(subset), correct/total)
     # TODO: make a metric-printing observer
