@@ -3,6 +3,7 @@ import sacred
 from sacred import Experiment
 from sacred.observers import FileStorageObserver
 from sktdl_tinyimagenet import model, datasets
+import math
 
 
 # It's not a very respectable decision
@@ -69,6 +70,17 @@ def train(n_epochs, _run, device):
     net = get_network()
     net(next(iter(dataset))[0]) # For AdaptiveLinear to make weights
     net = net.to(device)
+    with torch.no_grad():
+        for p in net.parameters():
+            if p.dim() > 1:
+                torch.nn.init.xavier_uniform_(p)
+            else:
+
+                a = 1.
+                for s in p.shape:
+                    a *= s
+                a = 1./math.sqrt(a)
+                p.uniform_(-a, a)
     optimizer = get_optimizer(net.parameters())
     loss = get_loss().to(device)
     print('INITed!')
