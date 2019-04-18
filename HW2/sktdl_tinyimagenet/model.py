@@ -69,7 +69,7 @@ class AdaptiveLinear(torch.nn.Module):
         return self.true_layer(input)
 
 
-def make_wideresnet(n_classes, layers_per_stage, widen_factor=3, drop_rate=.2):
+def make_wideresnet(n_classes, layers_per_stage, maxpool_kernel_size=3, widen_factor=3, drop_rate=.2):
     layers = [ ResBlock(3, 16, 1, .0) ]
     for stride in [1, 2, 3]:
         in_channels, out_channels = 2**(3 + stride), 2**(4 + stride)
@@ -79,7 +79,7 @@ def make_wideresnet(n_classes, layers_per_stage, widen_factor=3, drop_rate=.2):
     layers += [
             torch.nn.BatchNorm2d(out_channels),
             torch.nn.ReLU(),
-            torch.nn.MaxPool2d(1),
+            torch.nn.MaxPool2d(maxpool_kernel_size),
             Flatten(),
             AdaptiveLinear(n_classes),
             torch.nn.LogSoftmax(-1)

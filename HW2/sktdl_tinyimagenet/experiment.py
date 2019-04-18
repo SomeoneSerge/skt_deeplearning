@@ -21,6 +21,7 @@ def config0():
     layers_per_stage = 1
     widen_factor = 3
     drop_rate = 0.2
+    maxpool_kernel_size=3
 
     n_epochs = 2
     optimizer_cls = torch.optim.Adam
