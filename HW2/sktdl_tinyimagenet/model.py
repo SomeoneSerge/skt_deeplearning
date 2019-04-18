@@ -72,7 +72,7 @@ class AdaptiveLinear(torch.nn.Module):
 def make_wideresnet(n_classes, layers_per_stage, maxpool_kernel_size=2, maxpool_stride=2, widen_factor=3, drop_rate=.2):
     layers = [ ResBlock(3, 16, 1, .0) ]
     for stride in [1, 2, 3]:
-        in_channels, out_channels = 2**(3 + stride), 2**(4 + stride)
+        in_channels, out_channels = 2**(3 + stride)*widen_factor, 2**(4 + stride)*widen_factor
         layers += [ ResBlock(in_channels, out_channels, stride, drop_rate) ]
         for i in range(1, layers_per_stage):
             layers += [ ResBlock(out_channels, out_channels, 1, drop_rate) ]
