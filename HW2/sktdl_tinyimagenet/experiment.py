@@ -96,6 +96,7 @@ def train(n_epochs, _run, device):
             optimizer.step()
             total_loss += obj.item()/float(X.shape[0])
         _run.log_scalar('train.loss', total_loss)
+        print('train.loss: {:.6f}'.format(total_loss))
         evaluate(net, 'test')
         # evaluate(net, 'train')
     filename = 'tmp_weights.pt'
