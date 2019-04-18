@@ -58,7 +58,7 @@ def evaluate(model, subset, device, _run):
             total += int(X.shape[0])
     _run.log_scalar('{}.accuracy'.format(subset), correct/total)
     # TODO: make a metric-printing observer
-    print('{}.accuracy: {.6f}'.format(subset, correct/total))
+    print('{}.accuracy: {:.6f}'.format(subset, correct/total))
 
 get_loss = ex.capture(lambda loss_cls: loss_cls())
 
