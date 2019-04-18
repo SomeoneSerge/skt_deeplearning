@@ -21,10 +21,10 @@ def config0():
     n_classes = 200
     layers_per_stage = 1
     widen_factor = 3
-    drop_rate = 0.2
-    maxpool_kernel_size=3
+    drop_rate = 0.3
+    maxpool_kernel_size=10
 
-    n_epochs = 2
+    n_epochs = 5
     optimizer_cls = torch.optim.Adam
     optimizer_params = dict(
             lr=1e-3,
