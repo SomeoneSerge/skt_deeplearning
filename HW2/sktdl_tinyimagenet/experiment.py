@@ -30,6 +30,9 @@ def config0():
             )
     loss_cls = torch.nn.CrossEntropyLoss
 
+
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
     batch_size = 128
     num_workers = 2
     dataset_name = 'tiny-imagenet-200'
@@ -49,6 +52,8 @@ def evaluate(model, subset, _run):
     correct, total = 0, 0
     with torch.no_grad():
         for X, y in dataset:
+            y = y.to(device, non_blocking=True)
+            X = X.to(device)
             valid += (model(X).argmax(-1) == subset).sum().item()
             total += int(X.shape[0])
     _run.log_scalar('{}.accuracy'.format(subset), correct/total)
@@ -56,16 +61,19 @@ def evaluate(model, subset, _run):
 get_loss = ex.capture(lambda loss_cls: loss_cls())
 
 @ex.capture
-def train(n_epochs, _run):
+def train(n_epochs, _run, device):
     dataset = get_dataset('train')
     net = get_network()
     net(next(iter(dataset))[0]) # For AdaptiveLinear to make weights
+    net = net.to(device)
     optimizer = get_optimizer(net.parameters())
-    loss = get_loss()
+    loss = get_loss().to(device)
     print('INITed!')
     for e in range(n_epochs):
         total_loss = 0.
         for b, (X, y) in enumerate(dataset):
+            y = y.to(device, non_blocking=True)
+            X = X.to(device)
             optimizer.zero_grad()
             yhat = net.forward(X)
             obj = loss(yhat, y)
