@@ -22,7 +22,7 @@ def config0():
     widen_factor = 3
     drop_rate = 0.2
 
-    n_epochs = 10
+    n_epochs = 2
     optimizer_cls = torch.optim.Adam
     optimizer_params = dict(
             lr=1e-3,
@@ -47,7 +47,7 @@ def get_optimizer(params, optimizer_cls, optimizer_params):
     return optimizer_cls(params, **optimizer_params)
 
 @ex.capture
-def evaluate(model, subset, _run):
+def evaluate(model, subset, device, _run):
     dataset = get_dataset(subset)
     correct, total = 0, 0
     with torch.no_grad():
