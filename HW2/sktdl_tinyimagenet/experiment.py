@@ -84,7 +84,7 @@ def train(n_epochs, _run, device):
             total_loss += obj.item()/float(X.shape[0])
         _run.log_scalar('train.loss', total_loss)
         evaluate(net, 'test')
-        evaluate(net, 'train')
+        # evaluate(net, 'train')
     filename = 'tmp_weights.pt'
     torch.save(
             net.state_dict(),
