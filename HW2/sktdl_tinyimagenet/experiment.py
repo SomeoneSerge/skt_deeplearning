@@ -83,7 +83,9 @@ def train(n_epochs, _run, device):
                 p.uniform_(-a, a)
     optimizer = get_optimizer(net.parameters())
     loss = get_loss().to(device)
-    print('INITed!')
+    print('Architecture:')
+    print(net)
+    print('Entering train loop!')
     for e in range(n_epochs):
         total_loss = 0.
         for b, (X, y) in enumerate(dataset):
