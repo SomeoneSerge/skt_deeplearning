@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 import math
 
 
@@ -48,28 +49,11 @@ class Flatten(torch.nn.Module):
     def forward(self, input):
         return torch.flatten(input, start_dim=1)
 
-class AdaptiveLinear(torch.nn.Module):
-    def __init__(self, out_features):
-        super(AdaptiveLinear, self).__init__()
-        self.true_layer = None
-        self.in_features = None
-        self.out_features = out_features
-    def _make_layer(self, in_features):
-        assert self.in_features in [None, in_features]
-        if self.true_layer is None:
-            self.in_features = in_features
-            self.true_layer = torch.nn.Linear(in_features, self.out_features)
-            with torch.no_grad():
-                torch.nn.init.xavier_uniform_(self.true_layer.weight)
-                stddev = self.out_features
-                stddev = 1./math.sqrt(stddev)
-                self.true_layer.bias.uniform_(-stddev, stddev)
-    def forward(self, input):
-        self._make_layer(input.shape[-1])
-        return self.true_layer(input)
-
-
-def make_wideresnet(n_classes, layers_per_stage, maxpool_kernel_size=2, maxpool_stride=2, widen_factor=3, drop_rate=.2):
+def make_wideresnet(
+        n_classes, layers_per_stage,
+        apooling_cls,
+        apooling_output_size,
+        widen_factor=3, drop_rate=.2):
     layers = [ ResBlock(3, 16*widen_factor, 1, .0) ]
     for stride in [1, 2, 3]:
         in_channels, out_channels = 2**(3 + stride)*widen_factor, 2**(4 + stride)*widen_factor
@@ -79,9 +63,12 @@ def make_wideresnet(n_classes, layers_per_stage, maxpool_kernel_size=2, maxpool_
     layers += [
             torch.nn.BatchNorm2d(out_channels),
             torch.nn.ReLU(),
-            torch.nn.MaxPool2d(maxpool_kernel_size, stride=maxpool_stride),
+            apooling_cls(apooling_output_size),
+            torch.nn.Conv2d(out_channels, 1, 1),
             Flatten(),
-            AdaptiveLinear(n_classes),
+            torch.nn.Linear(
+                np.product(apooling_output_size),
+                n_classes),
             torch.nn.LogSoftmax(-1)
             ]
     return torch.nn.Sequential(*layers)

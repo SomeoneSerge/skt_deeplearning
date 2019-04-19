@@ -19,16 +19,16 @@ ex.observers.append(FileStorageObserver.create('runs'))
 @ex.config
 def config0():
     n_classes = 200
-    layers_per_stage = 1
-    widen_factor = 3
-    drop_rate = 0.3
-    maxpool_kernel_size=9
-    maxpool_stride=1
+    layers_per_stage = 2
+    widen_factor = 4
+    drop_rate = 0.2
+    apooling_cls = torch.nn.AdaptiveMaxPool2d
+    apooling_output_size = (10, 10)
 
     n_epochs = 5
     optimizer_cls = torch.optim.Adam
     optimizer_params = dict(
-            lr=1e-3,
+            lr=.01,
             betas=[.9, .999]
             )
     loss_cls = torch.nn.CrossEntropyLoss
@@ -37,7 +37,7 @@ def config0():
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     batch_size = 128
-    num_workers = 2
+    num_workers = 1
     dataset_name = 'tiny-imagenet-200'
     download_path = '.'
     download_url = 'http://cs231n.stanford.edu/tiny-imagenet-200.zip'
