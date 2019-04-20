@@ -33,9 +33,11 @@ class Immersion(torch.nn.Module):
             kernel_size = (kernel_size,)*2
         self.register_buffer('weight', torch.ones(out_channels, in_channels, *kernel_size))
         self.weight.div_(in_channels*kernel_size[0]*kernel_size[1])
+        self.weight.requires_grad_(False)
         self.stride = stride
         self.padding = padding
     def forward(self, input):
+        assert not hasattr(self.weight, 'grad') or self.weight.grad is None
         return torch.conv2d(input, self.weight, stride=self.stride, padding=self.padding)
 
 class ResBlock(torch.nn.Module):
