@@ -3,7 +3,13 @@ from urllib.request import urlretrieve
 import torch
 import torchvision
 
-def get_dataset(subset, download_path, download_url, dataset_name, batch_size, num_workers):
+def get_dataset(
+        subset,
+        download_path,
+        download_url,
+        dataset_name,
+        batch_size,
+        num_workers):
     assert subset in ['train', 'test', 'val']
     dataset_path = os.path.join(download_path, dataset_name, subset)
     if not os.path.exists(dataset_path):
@@ -13,8 +19,8 @@ def get_dataset(subset, download_path, download_url, dataset_name, batch_size, n
         download(subset, download_path, download_url, dataset_name)
     assert os.path.exists(dataset_path)
     transforms = torchvision.transforms.Compose([
-            torchvision.transforms.RandomRotation(20),
-            torchvision.transforms.RandomHorizontalFlip(0.5),
+            # torchvision.transforms.RandomRotation(20),
+            # torchvision.transforms.RandomHorizontalFlip(0.5),
             torchvision.transforms.ToTensor(),
             ])
     image_folder = torchvision.datasets.ImageFolder(dataset_path, transforms)
