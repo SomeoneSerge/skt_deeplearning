@@ -63,8 +63,8 @@ def make_wideresnet(
     layers += [
             torch.nn.BatchNorm2d(out_channels),
             torch.nn.ReLU(),
-            apooling_cls(apooling_output_size),
             torch.nn.Conv2d(out_channels, 1, 1),
+            apooling_cls(apooling_output_size),
             Flatten(),
             torch.nn.Linear(
                 np.product(apooling_output_size),
