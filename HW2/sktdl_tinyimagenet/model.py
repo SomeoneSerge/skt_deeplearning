@@ -54,7 +54,7 @@ def make_wideresnet(
         apooling_cls,
         apooling_output_size,
         widen_factor=3, drop_rate=.2):
-    layers = [ ResBlock(3, 16*widen_factor, 1, .0) ]
+    layers = [ torch.nn.Conv2d(3, 16*widen_factor, 1) ]
     for stride in [1, 2, 3]:
         in_channels, out_channels = 2**(3 + stride)*widen_factor, 2**(4 + stride)*widen_factor
         layers += [ ResBlock(in_channels, out_channels, stride, drop_rate) ]
