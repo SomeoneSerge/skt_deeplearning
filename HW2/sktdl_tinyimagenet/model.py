@@ -26,6 +26,18 @@ def make_conv(
     return torch.nn.Sequential(*layers)
 
 
+class Immersion(torch.nn.Module):
+    def __init__(self, in_channels, out_channels, kernel_size, stride, padding):
+        super(Immersion, self).__init__()
+        if isinstance(kernel_size, int):
+            kernel_size = (kernel_size,)*2
+        self.weight = torch.ones(out_channels, in_channels, *kernel_size)
+        self.weight.div_(in_channels*kernel_size[0]*kernel_size[1])
+        self.stride = stride
+        self.padding = padding
+    def forward(self, input):
+        return torch.conv2d(input, self.weight, stride=self.stride, padding=self.padding)
+
 class ResBlock(torch.nn.Module):
     def __init__(self, in_features, out_features, stride, drop_rate):
         """`B(?, ?)` from `https://arxiv.org/pdf/1605.07146.pdf`"""
@@ -37,7 +49,7 @@ class ResBlock(torch.nn.Module):
                 padding=0,
                 drop_rate=drop_rate),
         )
-        self.shortcut = torch.nn.Conv2d(
+        self.shortcut = Immersion(
                 in_features, out_features,
                 kernel_size=1,
                 stride=stride,
