@@ -31,7 +31,7 @@ class Immersion(torch.nn.Module):
         super(Immersion, self).__init__()
         if isinstance(kernel_size, int):
             kernel_size = (kernel_size,)*2
-        self.weight = torch.ones(out_channels, in_channels, *kernel_size)
+        self.register_buffer('weight', torch.ones(out_channels, in_channels, *kernel_size))
         self.weight.div_(in_channels*kernel_size[0]*kernel_size[1])
         self.stride = stride
         self.padding = padding
