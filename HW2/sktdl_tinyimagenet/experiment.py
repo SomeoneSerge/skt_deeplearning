@@ -1,7 +1,7 @@
 import torch
 import sacred
 from sacred import Experiment
-from sacred.observers import FileStorageObserver
+from sacred.observers import FileStorageObserver, TensorboardObserver
 from sktdl_tinyimagenet import model, datasets
 import math
 
@@ -14,7 +14,8 @@ import math
 
 
 ex = Experiment('sktdl_tinyimagenet')
-ex.observers.append(FileStorageObserver.create('runs'))
+ex.observers.append(FileStorageObserver.create('f_runs'))
+ex.observers.append(TensorboardObserver('runs')) # make .creat() perhaps?
 
 @ex.config
 def config0():
@@ -59,14 +60,13 @@ def evaluate(model, subset, device, _run):
             X = X.to(device)
             correct += (model(X).argmax(-1) == y).sum().item()
             total += int(X.shape[0])
-    _run.log_scalar('{}.accuracy'.format(subset), correct/total)
-    # TODO: make a metric-printing observer
-    print('{}.accuracy: {:.6f}'.format(subset, correct/total))
+    return correct/total
 
 get_loss = ex.capture(lambda loss_cls: loss_cls())
 
 @ex.capture
 def train(n_epochs, _run, device):
+    print('Using device {device}'.format(device=device))
     dataset = get_dataset('train')
     net = get_network()
     net(next(iter(dataset))[0]) # For AdaptiveLinear to make weights
@@ -87,6 +87,7 @@ def train(n_epochs, _run, device):
     print('Architecture:')
     print(net)
     print('Entering train loop!')
+    it = 0
     for e in range(n_epochs):
         total_loss = 0.
         for b, (X, y) in enumerate(dataset):
@@ -96,12 +97,21 @@ def train(n_epochs, _run, device):
             yhat = net.forward(X)
             obj = loss(yhat, y)
             obj.backward()
+            _run.log_scalar('train.loss', obj.item(), it)
             optimizer.step()
             total_loss += obj.item()/float(X.shape[0])
-        _run.log_scalar('train.loss', total_loss)
-        print('train.loss: {:.6f}'.format(total_loss))
-        evaluate(net, 'test')
+            for name, p in net.named_parameters():
+                _run.log_scalar('{}.grad'.format(name), torch.norm(p), it)
+            it = it + 1
+        _run.log_scalar('train.epoch.loss', total_loss, it) # aligning smoothened per-epoch plot and noisy per-iter plots
+        # print('train.loss: {:.6f}'.format(total_loss))
+        test_acc = evaluate(net, 'test')
+        _run.log_scalar('{}.accuracy'.format(subset), test_acc, it)
+        # TODO: make a metric-printing observer
+        # print('{}.accuracy: {:.6f}'.format(subset, correct/total))
         # evaluate(net, 'train')
+        #
+        #
     filename = 'tmp_weights.pt'
     torch.save(
             net.state_dict(),
