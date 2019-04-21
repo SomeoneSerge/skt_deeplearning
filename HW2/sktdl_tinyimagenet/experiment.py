@@ -104,10 +104,12 @@ def train(n_epochs, _run, device):
             total_loss += obj.item()/float(X.shape[0])
             _run.log_scalar('batch.loss', obj.item(), it)
             _run.log_scalar('batch.acc', batch_acc, it)
-            for name, p in net.named_parameters():
-                _run.log_scalar('{}.grad'.format(name), torch.norm(p), it)
+            with torch.no_grad():
+                for name, p in net.named_parameters():
+                    _run.log_scalar('norm.grad.{}'.format(name), torch.norm(p.grad.data), it)
+                    _run.log_scalar('norm.{}'.format(name), torch.norm(p.data), it)
             it = it + 1
-        _run.log_scalar('train.epoch.loss', total_loss, it) # aligning smoothened per-epoch plot and noisy per-iter plots
+        _run.log_scalar('train.loss', total_loss, it) # aligning smoothened per-epoch plot and noisy per-iter plots
         # print('train.loss: {:.6f}'.format(total_loss))
         test_acc = evaluate(net, 'test')
         _run.log_scalar('{}.accuracy'.format(subset), test_acc, it)
