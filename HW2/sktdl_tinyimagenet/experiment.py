@@ -97,9 +97,13 @@ def train(n_epochs, _run, device):
             yhat = net.forward(X)
             obj = loss(yhat, y)
             obj.backward()
-            _run.log_scalar('train.loss', obj.item(), it)
             optimizer.step()
+            with torch.no_grad():
+                batch_acc = (yhat.argmax(-1) == y).sum().item()
+                batch_acc = float(batch_acc)/float(X.shape[0])
             total_loss += obj.item()/float(X.shape[0])
+            _run.log_scalar('batch.loss', obj.item(), it)
+            _run.log_scalar('batch.loss', batch_acc, it)
             for name, p in net.named_parameters():
                 _run.log_scalar('{}.grad'.format(name), torch.norm(p), it)
             it = it + 1
