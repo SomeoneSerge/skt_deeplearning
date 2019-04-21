@@ -103,7 +103,7 @@ def train(n_epochs, _run, device):
                 batch_acc = float(batch_acc)/float(X.shape[0])
             total_loss += obj.item()/float(X.shape[0])
             _run.log_scalar('batch.loss', obj.item(), it)
-            _run.log_scalar('batch.loss', batch_acc, it)
+            _run.log_scalar('batch.acc', batch_acc, it)
             for name, p in net.named_parameters():
                 _run.log_scalar('{}.grad'.format(name), torch.norm(p), it)
             it = it + 1
