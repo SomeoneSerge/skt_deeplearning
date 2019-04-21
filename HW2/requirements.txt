@@ -1,4 +1,4 @@
 torch>=1.0.0
 numpy
 torchvision
-git+https://github.com/newkozlukov/sacred.git/#TensorboardObserver
+git+https://github.com/newkozlukov/sacred.git@TensorboardObserver
