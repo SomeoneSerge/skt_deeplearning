@@ -83,6 +83,5 @@ def make_wideresnet(
             torch.nn.Linear(
                 np.product(apooling_output_size),
                 n_classes),
-            torch.nn.LogSoftmax(-1)
             ]
     return torch.nn.Sequential(*layers)
