@@ -87,6 +87,7 @@ def train(n_epochs, _run, device):
     net.train()
     print('Architecture:')
     print(net)
+    print('Number of parameters: {}'.format(sum(p.numel() for p in net.parameters())))
     print('Entering train loop!')
     it = 0
     for e in range(n_epochs):
