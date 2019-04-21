@@ -84,6 +84,7 @@ def train(n_epochs, _run, device):
                 p.uniform_(-a, a)
     optimizer = get_optimizer(net.parameters())
     loss = get_loss().to(device)
+    net.train()
     print('Architecture:')
     print(net)
     print('Entering train loop!')
@@ -98,21 +99,25 @@ def train(n_epochs, _run, device):
             obj = loss(yhat, y)
             obj.backward()
             optimizer.step()
-            with torch.no_grad():
-                batch_acc = (yhat.argmax(-1) == y).sum().item()
-                batch_acc = float(batch_acc)/float(X.shape[0])
-            total_loss += obj.item()/float(X.shape[0])
-            _run.log_scalar('batch.loss', obj.item(), it)
-            _run.log_scalar('batch.acc', batch_acc, it)
-            with torch.no_grad():
-                for name, p in net.named_parameters():
-                    _run.log_scalar('norm.grad.{}'.format(name), torch.norm(p.grad.data), it)
-                    _run.log_scalar('norm.{}'.format(name), torch.norm(p.data), it)
+            try:
+                net.eval()
+                with torch.no_grad():
+                    batch_acc = (yhat.argmax(-1) == y).sum().item()
+                    batch_acc = float(batch_acc)/float(X.shape[0])
+                total_loss += obj.item()/float(X.shape[0])
+                _run.log_scalar('batch.loss', obj.item(), it)
+                _run.log_scalar('batch.acc', batch_acc, it)
+                with torch.no_grad():
+                    for name, p in net.named_parameters():
+                        _run.log_scalar('norm.grad.{}'.format(name), torch.norm(p.grad.data), it)
+                        _run.log_scalar('norm.{}'.format(name), torch.norm(p.data), it)
+            finally:
+                net.train()
             it = it + 1
         _run.log_scalar('train.loss', total_loss, it) # aligning smoothened per-epoch plot and noisy per-iter plots
         # print('train.loss: {:.6f}'.format(total_loss))
         test_acc = evaluate(net, 'test')
-        _run.log_scalar('{}.accuracy'.format(subset), test_acc, it)
+        _run.log_scalar('test.accuracy', test_acc, it)
         # TODO: make a metric-printing observer
         # print('{}.accuracy: {:.6f}'.format(subset, correct/total))
         # evaluate(net, 'train')
