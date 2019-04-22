@@ -38,11 +38,9 @@ def get_imagefolder(
 
 @tinyimagenet_ingredient.capture
 def download(
-        subset,
         download_path,
         download_url,
         dataset_name):
-    assert subset in ['train', 'test', 'val']
     path = download_path
     url = download_url
 
