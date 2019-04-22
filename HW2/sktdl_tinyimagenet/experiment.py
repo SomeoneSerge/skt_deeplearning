@@ -6,6 +6,8 @@ from sktdl_tinyimagenet import model, datasets
 import math
 
 
+from .datasets import get_imagefolder, tinyimagenet_ingredient
+
 # It's not a very respectable decision
 # to fuse DI framework into the very heart of application
 # but it allows faster bootstrap.
@@ -13,7 +15,7 @@ import math
 # `https://github.com/yuvalatzmon/SACRED_HyperOpt_v2/blob/master/sacred_wrapper.py`
 
 
-ex = Experiment('sktdl_tinyimagenet')
+ex = Experiment('sktdl_tinyimagenet', ingredients=[tinyimagenet_ingredient])
 ex.observers.append(FileStorageObserver.create('f_runs'))
 ex.observers.append(TensorboardObserver('runs')) # make .creat() perhaps?
 
@@ -37,24 +39,30 @@ def config0():
             )
     loss_cls = torch.nn.CrossEntropyLoss
 
-
+    log_norms = False
+    log_gradnorms = False
+    num_workers = 1
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    num_workers = 1
-    dataset_name = 'tiny-imagenet-200'
-    download_path = '.'
-    download_url = 'http://cs231n.stanford.edu/tiny-imagenet-200.zip'
 
 get_network = ex.capture(model.make_wideresnet)
-get_dataset = ex.capture(datasets.get_dataset)
 
 @ex.capture
 def get_optimizer(params, optimizer_cls, optimizer_params):
     return optimizer_cls(params, **optimizer_params)
 
 @ex.capture
+def get_dataloader(
+        subset,
+        batch_size,
+        num_workers,):
+    image_folder = get_imagefolder(subset=subset)
+    batches = torch.utils.data.DataLoader(image_folder, batch_size, num_workers)
+    return batches
+
+@ex.capture
 def evaluate(model, subset, device, _run):
-    dataset = get_dataset(subset)
+    dataset = get_dataloader(subset)
     correct, total = 0, 0
     with torch.no_grad():
         for X, y in dataset:
@@ -67,9 +75,9 @@ def evaluate(model, subset, device, _run):
 get_loss = ex.capture(lambda loss_cls: loss_cls())
 
 @ex.capture
-def train(n_epochs, _run, device):
+def train(n_epochs, device, log_norms, log_gradnorms, _run):
     print('Using device {device}'.format(device=device))
-    dataset = get_dataset('train')
+    dataset = get_dataloader('train')
     net = get_network()
     net(next(iter(dataset))[0]) # For AdaptiveLinear to make weights
     net = net.to(device)
@@ -109,11 +117,15 @@ def train(n_epochs, _run, device):
                     batch_acc = float(batch_acc)/float(X.shape[0])
                 total_loss += obj.item()/float(X.shape[0])
                 _run.log_scalar('batch.loss', obj.item(), it)
-                _run.log_scalar('batch.acc', batch_acc, it)
+                _run.log_scalar('batch.accuracy', batch_acc, it)
+                if not (log_norms or log_gradnorms):
+                    continue
                 with torch.no_grad():
                     for name, p in net.named_parameters():
-                        _run.log_scalar('norm.grad.{}'.format(name), torch.norm(p.grad.data), it)
-                        _run.log_scalar('norm.{}'.format(name), torch.norm(p.data), it)
+                        if log_gradnorms:
+                            _run.log_scalar('gradnorm__{}'.format(name), torch.norm(p.grad.data), it)
+                        if log_norms:
+                            _run.log_scalar('norm__{}'.format(name), torch.norm(p.data), it)
             finally:
                 net.train()
             it = it + 1

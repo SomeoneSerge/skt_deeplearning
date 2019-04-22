@@ -7,7 +7,8 @@ def bn_relu_conv(
         in_features, out_features, kernel_size,
         stride=1,
         drop_rate=0.,
-        padding=1):
+        padding=1,
+        bias=False):
     layers = []
     layers += [
             torch.nn.BatchNorm2d(in_features),
@@ -22,6 +23,7 @@ def bn_relu_conv(
                 kernel_size=kernel_size,
                 stride=stride,
                 padding=padding,
+                bias=bias,
                 ),
     ]
     return tuple(layers)
@@ -30,7 +32,8 @@ def conv_bn_relu(
         in_features, out_features, kernel_size,
         stride=1,
         drop_rate=0.,
-        padding=1):
+        padding=1,
+        bias=False):
     layers = []
     layers += [
             torch.nn.Conv2d(
@@ -39,6 +42,7 @@ def conv_bn_relu(
                 kernel_size=kernel_size,
                 stride=stride,
                 padding=padding,
+                bias=bias,
                 ),
     ]
     if drop_rate > 0:
@@ -69,19 +73,34 @@ class ResBlock(torch.nn.Module):
         """`B(?, ?)` from `https://arxiv.org/pdf/1605.07146.pdf`"""
         super(ResBlock, self).__init__()
         res_layers = tuple()
-        res_layers += make_conv(in_features, out_features, 3, stride=stride, drop_rate=0.)
-        res_layers += make_conv(
-                out_features, out_features, 1,
-                padding=0,
-                drop_rate=drop_rate)
-        self.residual = torch.nn.Sequential(*res_layers)
-        self.shortcut = Immersion(
-                in_features, out_features,
-                kernel_size=1,
+        res_layers += make_conv(in_features, out_features,
+                kernel_size=3,
                 stride=stride,
-                padding=0)
+                drop_rate=0.,
+                bias=False)
+        res_layers += make_conv(
+                out_features, out_features,
+                kernel_size=3,
+                stride=1,
+                padding=1,
+                drop_rate=drop_rate,
+                bias=False)
+        self.residual = torch.nn.Sequential(*res_layers)
+        if in_features != out_features:
+            self.shortcut = Immersion(
+                    in_features, out_features,
+                    kernel_size=1,
+                    stride=stride,
+                    padding=0)
+        else:
+            self.shortcut = None
     def forward(self, input):
-        return self.shortcut.forward(input) + self.residual.forward(input)
+        out = self.residual.forward(input)
+        if self.shortcut:
+            out += self.shortcut.forward(input)
+        else:
+            out += input
+        return out
 
 class Flatten(torch.nn.Module):
     def forward(self, input):

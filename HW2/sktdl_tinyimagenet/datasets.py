@@ -3,13 +3,22 @@ from urllib.request import urlretrieve
 import torch
 import torchvision
 
-def get_dataset(
+
+from sacred import Ingredient
+
+tinyimagenet_ingredient = Ingredient('tinyimagenet')
+
+@tinyimagenet_ingredient.config
+def tinyimagenet_config():
+    dataset_name = 'tiny-imagenet-200'
+    download_path = '.'
+    download_url = 'http://cs231n.stanford.edu/tiny-imagenet-200.zip'
+
+@tinyimagenet_ingredient.capture
+def get_imagefolder(
         subset,
         download_path,
-        download_url,
-        dataset_name,
-        batch_size,
-        num_workers):
+        dataset_name):
     assert subset in ['train', 'test', 'val']
     dataset_path = os.path.join(download_path, dataset_name, subset)
     if not os.path.exists(dataset_path):
@@ -24,9 +33,10 @@ def get_dataset(
             torchvision.transforms.ToTensor(),
             ])
     image_folder = torchvision.datasets.ImageFolder(dataset_path, transforms)
-    batches = torch.utils.data.DataLoader(image_folder, batch_size, num_workers)
-    return batches
+    return image_folder
 
+
+@tinyimagenet_ingredient.capture
 def download(
         subset,
         download_path,
