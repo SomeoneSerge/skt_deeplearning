@@ -25,7 +25,7 @@ def get_imagefolder(
         print('Downloading tinyimagenet')
         # download is only going to be dependency-injected
         # in experiment.py, thus binding manually
-        download(subset, download_path, download_url, dataset_name)
+        download()
     assert os.path.exists(dataset_path)
     transforms = torchvision.transforms.Compose([
             # torchvision.transforms.RandomRotation(20),
