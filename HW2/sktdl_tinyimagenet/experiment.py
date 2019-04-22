@@ -20,24 +20,26 @@ ex.observers.append(TensorboardObserver('runs')) # make .creat() perhaps?
 @ex.config
 def config0():
     n_classes = 200
-    layers_per_stage = 2
+    depth = 16
     widen_factor = 4
-    drop_rate = 0.2
+    drop_rate = 0.02
+    batch_size = 100
+    make_conv = model.conv_bn_relu
     apooling_cls = torch.nn.AdaptiveMaxPool2d
     apooling_output_size = (10, 10)
+    append_logsoftmax = True
 
-    n_epochs = 5
+    n_epochs = 10
     optimizer_cls = torch.optim.Adam
     optimizer_params = dict(
-            lr=.01,
-            betas=[.9, .999]
+            lr=.005,
+            betas=[.8, .999]
             )
     loss_cls = torch.nn.CrossEntropyLoss
 
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    batch_size = 128
     num_workers = 1
     dataset_name = 'tiny-imagenet-200'
     download_path = '.'

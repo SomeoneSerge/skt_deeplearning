@@ -3,18 +3,19 @@ import numpy as np
 import math
 
 
-def make_conv(
+def bn_relu_conv(
         in_features, out_features, kernel_size,
         stride=1,
         drop_rate=0.,
         padding=1):
-    layers = [
+    layers = []
+    layers += [
             torch.nn.BatchNorm2d(in_features),
             torch.nn.ReLU(),
     ]
     if drop_rate > 0:
-        layers.append(torch.nn.Dropout(drop_rate))
-    layers.append(
+        layers += [torch.nn.Dropout(drop_rate)]
+    layers += [
             torch.nn.Conv2d(
                 in_features,
                 out_features,
@@ -22,8 +23,31 @@ def make_conv(
                 stride=stride,
                 padding=padding,
                 ),
-    )
-    return torch.nn.Sequential(*layers)
+    ]
+    return tuple(layers)
+
+def conv_bn_relu(
+        in_features, out_features, kernel_size,
+        stride=1,
+        drop_rate=0.,
+        padding=1):
+    layers = []
+    layers += [
+            torch.nn.Conv2d(
+                in_features,
+                out_features,
+                kernel_size=kernel_size,
+                stride=stride,
+                padding=padding,
+                ),
+    ]
+    if drop_rate > 0:
+        layers += [torch.nn.Dropout(drop_rate)]
+    layers += [
+            torch.nn.BatchNorm2d(out_features),
+            torch.nn.ReLU(),
+    ]
+    return tuple(layers)
 
 
 class Immersion(torch.nn.Module):
@@ -41,16 +65,16 @@ class Immersion(torch.nn.Module):
         return torch.conv2d(input, self.weight, stride=self.stride, padding=self.padding)
 
 class ResBlock(torch.nn.Module):
-    def __init__(self, in_features, out_features, stride, drop_rate):
+    def __init__(self, in_features, out_features, make_conv, stride, drop_rate):
         """`B(?, ?)` from `https://arxiv.org/pdf/1605.07146.pdf`"""
         super(ResBlock, self).__init__()
-        self.residual = torch.nn.Sequential(
-            make_conv(in_features, out_features, 3, stride=stride, drop_rate=0.),
-            make_conv(
+        res_layers = tuple()
+        res_layers += make_conv(in_features, out_features, 3, stride=stride, drop_rate=0.)
+        res_layers += make_conv(
                 out_features, out_features, 1,
                 padding=0,
-                drop_rate=drop_rate),
-        )
+                drop_rate=drop_rate)
+        self.residual = torch.nn.Sequential(*res_layers)
         self.shortcut = Immersion(
                 in_features, out_features,
                 kernel_size=1,
@@ -64,16 +88,23 @@ class Flatten(torch.nn.Module):
         return torch.flatten(input, start_dim=1)
 
 def make_wideresnet(
-        n_classes, layers_per_stage,
+        n_classes, depth,
+        make_conv,
         apooling_cls,
         apooling_output_size,
+        append_logsoftmax,
         widen_factor=3, drop_rate=.2):
-    layers = [ torch.nn.Conv2d(3, 16*widen_factor, 1) ]
-    for stride in [1, 2, 3]:
-        in_channels, out_channels = 2**(3 + stride)*widen_factor, 2**(4 + stride)*widen_factor
-        layers += [ ResBlock(in_channels, out_channels, stride, drop_rate) ]
-        for i in range(1, layers_per_stage):
-            layers += [ ResBlock(out_channels, out_channels, 1, drop_rate) ]
+    assert (depth - 4) % 6 == 0
+    n = (depth - 4) // 6
+    layers = [ torch.nn.Conv2d(3, 16, 1) ]
+    channels = [16] + [2**(3 + stride) * widen_factor for stride in [1, 2, 3]]
+    in_channels = channels[:-1]
+    out_channels = channels[1:]
+    strides = [1, 2, 3]
+    for in_channels, out_channels, stride in zip(in_channels, out_channels, strides):
+        layers += [ ResBlock(in_channels, out_channels, make_conv, stride, drop_rate) ]
+        for i in range(1, n):
+            layers += [ ResBlock(out_channels, out_channels, make_conv, 1, drop_rate) ]
     layers += [
             torch.nn.BatchNorm2d(out_channels),
             torch.nn.ReLU(),
@@ -84,4 +115,6 @@ def make_wideresnet(
                 np.product(apooling_output_size),
                 n_classes),
             ]
+    if append_logsoftmax:
+        layers += [torch.nn.LogSoftmax(-1)]
     return torch.nn.Sequential(*layers)
