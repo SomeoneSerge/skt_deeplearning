@@ -128,7 +128,7 @@ def train(n_epochs, device, log_norms, log_gradnorms, _run):
                             _run.log_scalar('norm__{}'.format(name), torch.norm(p.data), it)
             finally:
                 net.train()
-            it = it + 1
+                it = it + 1
         _run.log_scalar('train.loss', total_loss, it) # aligning smoothened per-epoch plot and noisy per-iter plots
         # print('train.loss: {:.6f}'.format(total_loss))
         test_acc = evaluate(net, 'test')
