@@ -45,6 +45,7 @@ def config0():
     log_gradnorms = False
     num_workers = 1
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    print_architecture = False
 
 @ex.named_config
 def use_sgd():
@@ -96,7 +97,7 @@ def evaluate(model, subset, device, _run):
 get_loss = ex.capture(lambda loss_cls: loss_cls())
 
 @ex.capture
-def train(n_epochs, device, log_norms, log_gradnorms, _run, optimizer_params):
+def train(n_epochs, device, log_norms, log_gradnorms, _run, optimizer_params, print_architecture):
     print('Using device {device}'.format(device=device))
     dataset = get_dataloader('train')
     net = get_network()
@@ -116,10 +117,11 @@ def train(n_epochs, device, log_norms, log_gradnorms, _run, optimizer_params):
     optimizer = get_optimizer(net.parameters())
     loss = get_loss().to(device)
     net.train()
-    print('Architecture:')
-    print(net)
+    if print_architecture:
+        print('Architecture:')
+        print(net)
     print('Number of parameters: {}'.format(sum(p.numel() for p in net.parameters())))
-    print('Entering train loop!')
+    print('Entering train loop')
     it = 0
     for e in range(n_epochs):
         total_loss = 0.
