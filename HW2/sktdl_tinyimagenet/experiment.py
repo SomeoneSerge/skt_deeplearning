@@ -4,6 +4,7 @@ from sacred import Experiment
 from sacred.observers import FileStorageObserver, TensorboardObserver
 from sktdl_tinyimagenet import model, datasets
 import math
+import pprint
 
 
 from .datasets import get_tinyimagenet, get_cifar10, get_cifar100, tinyimagenet_ingredient, cifar_ingredient
@@ -28,15 +29,16 @@ def config0():
     batch_size = 100
     make_conv = model.conv_bn_relu
     apooling_cls = torch.nn.AdaptiveMaxPool2d
-    apooling_output_size = (10, 10)
+    apooling_output_size = (20, 20)
     append_logsoftmax = True
     dataset = get_tinyimagenet
     n_epochs = 10
     optimizer_cls = torch.optim.Adam
-    optimizer_params = lambda: dict(
-            lr=.005,
-            betas=[.8, .999]
+    adam_params = dict(
+            lr=.001,
+            betas=[.6, .999]
             )
+    optimizer_params = ex.capture(lambda adam_params: adam_params)
     loss_cls = torch.nn.CrossEntropyLoss
     log_norms = False
     log_gradnorms = False
@@ -46,11 +48,12 @@ def config0():
 @ex.named_config
 def use_sgd():
     optimizer_cls = torch.optim.SGD
-    optimizer_params = lambda: dict(
-            lr=.001,
-            momentum=.5,
+    sgd_params = dict(
+            lr=.003,
+            momentum=.9,
             nesterov=True
             )
+    optimizer_params = ex.capture(lambda sgd_params: sgd_params)
 
 @ex.named_config
 def cifar10():
@@ -92,7 +95,7 @@ def evaluate(model, subset, device, _run):
 get_loss = ex.capture(lambda loss_cls: loss_cls())
 
 @ex.capture
-def train(n_epochs, device, log_norms, log_gradnorms, _run):
+def train(n_epochs, device, log_norms, log_gradnorms, _run, optimizer_params):
     print('Using device {device}'.format(device=device))
     dataset = get_dataloader('train')
     net = get_network()
@@ -116,7 +119,6 @@ def train(n_epochs, device, log_norms, log_gradnorms, _run):
     print(net)
     print('Number of parameters: {}'.format(sum(p.numel() for p in net.parameters())))
     print('Entering train loop!')
-    print(_run.config_modifications)
     it = 0
     for e in range(n_epochs):
         total_loss = 0.
