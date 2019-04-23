@@ -152,8 +152,9 @@ def train(n_epochs, device, log_norms, log_gradnorms, _run, optimizer_params):
                                 _run.log_scalar('norm__{}'.format(name), torch.norm(p.data), it)
                 finally:
                     net.train()
-                    pbar.set_postfix_str('batch.accuracy: {:.5f}'.format(batch_acc))
                     it = it + 1
+                    pbar.set_postfix_str('batch.accuracy: {:.5f}'.format(batch_acc))
+                    pbar.update(1)
         _run.log_scalar('train.loss', total_loss, it) # aligning smoothened per-epoch plot and noisy per-iter plots
         # print('train.loss: {:.6f}'.format(total_loss))
         test_acc = evaluate(net, 'test')
