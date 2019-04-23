@@ -7,6 +7,28 @@ import torchvision
 from sacred import Ingredient
 
 tinyimagenet_ingredient = Ingredient('tinyimagenet')
+cifar_ingredient = Ingredient('cifar')
+
+@cifar_ingredient.config
+def cifar_cfg():
+    download_path='cifar'
+
+@cifar_ingredient.capture
+def get_cifar10(subset, download_path):
+    return torchvision.datasets.CIFAR10(
+            download_path,
+            train=subset == 'train',
+            download=True,
+            transform=torchvision.transforms.ToTensor())
+
+@cifar_ingredient.capture
+def get_cifar100(subset, download_path):
+    return torchvision.datasets.CIFAR100(
+            download_path,
+            train=subset == 'train',
+            download=True,
+            transform=torchvision.transforms.ToTensor())
+
 
 @tinyimagenet_ingredient.config
 def tinyimagenet_config():
@@ -15,7 +37,7 @@ def tinyimagenet_config():
     download_url = 'http://cs231n.stanford.edu/tiny-imagenet-200.zip'
 
 @tinyimagenet_ingredient.capture
-def get_imagefolder(
+def get_tinyimagenet(
         subset,
         download_path,
         dataset_name):
@@ -25,7 +47,7 @@ def get_imagefolder(
         print('Downloading tinyimagenet')
         # download is only going to be dependency-injected
         # in experiment.py, thus binding manually
-        download()
+        download_tinyimagenet()
     assert os.path.exists(dataset_path)
     transforms = torchvision.transforms.Compose([
             # torchvision.transforms.RandomRotation(20),
@@ -37,7 +59,7 @@ def get_imagefolder(
 
 
 @tinyimagenet_ingredient.capture
-def download(
+def download_tinyimagenet(
         download_path,
         download_url,
         dataset_name):

@@ -6,7 +6,7 @@ from sktdl_tinyimagenet import model, datasets
 import math
 
 
-from .datasets import get_imagefolder, tinyimagenet_ingredient
+from .datasets import get_tinyimagenet, get_cifar10, get_cifar100, tinyimagenet_ingredient, cifar_ingredient
 
 # It's not a very respectable decision
 # to fuse DI framework into the very heart of application
@@ -15,7 +15,7 @@ from .datasets import get_imagefolder, tinyimagenet_ingredient
 # `https://github.com/yuvalatzmon/SACRED_HyperOpt_v2/blob/master/sacred_wrapper.py`
 
 
-ex = Experiment('sktdl_tinyimagenet', ingredients=[tinyimagenet_ingredient])
+ex = Experiment('sktdl_tinyimagenet', ingredients=[tinyimagenet_ingredient, cifar_ingredient])
 ex.observers.append(FileStorageObserver.create('f_runs'))
 ex.observers.append(TensorboardObserver('runs')) # make .creat() perhaps?
 
@@ -30,33 +30,50 @@ def config0():
     apooling_cls = torch.nn.AdaptiveMaxPool2d
     apooling_output_size = (10, 10)
     append_logsoftmax = True
-
+    dataset = get_tinyimagenet
     n_epochs = 10
     optimizer_cls = torch.optim.Adam
-    optimizer_params = dict(
+    optimizer_params = lambda: dict(
             lr=.005,
             betas=[.8, .999]
             )
     loss_cls = torch.nn.CrossEntropyLoss
-
     log_norms = False
     log_gradnorms = False
     num_workers = 1
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+@ex.named_config
+def use_sgd():
+    optimizer_cls = torch.optim.SGD
+    optimizer_params = lambda: dict(
+            lr=.001,
+            momentum=.5,
+            nesterov=True
+            )
+
+@ex.named_config
+def cifar10():
+    dataset = get_cifar10
+
+@ex.named_config
+def cifar100():
+    dataset = get_cifar100
 
 
 get_network = ex.capture(model.make_wideresnet)
 
 @ex.capture
 def get_optimizer(params, optimizer_cls, optimizer_params):
-    return optimizer_cls(params, **optimizer_params)
+    return optimizer_cls(params, **optimizer_params())
 
 @ex.capture
 def get_dataloader(
         subset,
         batch_size,
+        dataset,
         num_workers,):
-    image_folder = get_imagefolder(subset=subset)
+    image_folder = dataset(subset=subset)
     batches = torch.utils.data.DataLoader(image_folder, batch_size, num_workers)
     return batches
 
@@ -99,6 +116,7 @@ def train(n_epochs, device, log_norms, log_gradnorms, _run):
     print(net)
     print('Number of parameters: {}'.format(sum(p.numel() for p in net.parameters())))
     print('Entering train loop!')
+    print(_run.config_modifications)
     it = 0
     for e in range(n_epochs):
         total_loss = 0.
