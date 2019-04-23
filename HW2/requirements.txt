@@ -3,3 +3,4 @@ numpy
 torchvision
 git+https://github.com/newkozlukov/sacred.git@TensorboardObserver
 tensorboardX
+tqdm

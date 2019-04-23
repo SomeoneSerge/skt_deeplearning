@@ -4,6 +4,7 @@ from sacred import Experiment
 from sacred.observers import FileStorageObserver, TensorboardObserver
 from sktdl_tinyimagenet import model, datasets
 import math
+import tqdm
 import pprint
 
 
@@ -122,33 +123,37 @@ def train(n_epochs, device, log_norms, log_gradnorms, _run, optimizer_params):
     it = 0
     for e in range(n_epochs):
         total_loss = 0.
-        for b, (X, y) in enumerate(dataset):
-            y = y.to(device, non_blocking=True)
-            X = X.to(device)
-            optimizer.zero_grad()
-            yhat = net.forward(X)
-            obj = loss(yhat, y)
-            obj.backward()
-            optimizer.step()
-            try:
-                net.eval()
-                with torch.no_grad():
-                    batch_acc = (yhat.argmax(-1) == y).sum().item()
-                    batch_acc = float(batch_acc)/float(X.shape[0])
-                total_loss += obj.item()/float(X.shape[0])
-                _run.log_scalar('batch.loss', obj.item(), it)
-                _run.log_scalar('batch.accuracy', batch_acc, it)
-                if not (log_norms or log_gradnorms):
-                    continue
-                with torch.no_grad():
-                    for name, p in net.named_parameters():
-                        if log_gradnorms:
-                            _run.log_scalar('gradnorm__{}'.format(name), torch.norm(p.grad.data), it)
-                        if log_norms:
-                            _run.log_scalar('norm__{}'.format(name), torch.norm(p.data), it)
-            finally:
-                net.train()
-                it = it + 1
+        with tqdm.tqdm(
+                enumerate(dataset),
+                desc='[{}/{}]'.format(e, n_epochs)) as pbar:
+            for b, (X, y) in enumerate(dataset):
+                y = y.to(device, non_blocking=True)
+                X = X.to(device)
+                optimizer.zero_grad()
+                yhat = net.forward(X)
+                obj = loss(yhat, y)
+                obj.backward()
+                optimizer.step()
+                try:
+                    net.eval()
+                    with torch.no_grad():
+                        batch_acc = (yhat.argmax(-1) == y).sum().item()
+                        batch_acc = float(batch_acc)/float(X.shape[0])
+                    total_loss += obj.item()/float(X.shape[0])
+                    _run.log_scalar('batch.loss', obj.item(), it)
+                    _run.log_scalar('batch.accuracy', batch_acc, it)
+                    if not (log_norms or log_gradnorms):
+                        continue
+                    with torch.no_grad():
+                        for name, p in net.named_parameters():
+                            if log_gradnorms:
+                                _run.log_scalar('gradnorm__{}'.format(name), torch.norm(p.grad.data), it)
+                            if log_norms:
+                                _run.log_scalar('norm__{}'.format(name), torch.norm(p.data), it)
+                finally:
+                    net.train()
+                    pbar.set_postfix_str('batch.accuracy: {:.5f}'.format(batch_acc))
+                    it = it + 1
         _run.log_scalar('train.loss', total_loss, it) # aligning smoothened per-epoch plot and noisy per-iter plots
         # print('train.loss: {:.6f}'.format(total_loss))
         test_acc = evaluate(net, 'test')
