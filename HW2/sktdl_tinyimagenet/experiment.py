@@ -31,10 +31,18 @@ make_xternalz = ex.capture(
                 widen_factor=widen_factor,
                 dropRate=drop_rate))
 
+@ex.capture
+def get_network(network_builder, append_logsoftmax):
+    net = network_builder()
+    if append_logsoftmax:
+        net = torch.nn.Sequential(net, torch.nn.LogSoftmax(-1))
+    return net
+
 @ex.config
 def config0():
     n_classes = 200
     batch_size = 100
+    append_logsoftmax = False
     dataset = get_tinyimagenet
     n_epochs = 10
     depth = 16
@@ -55,14 +63,14 @@ def config0():
 
 @ex.named_config
 def wideresnet():
-    get_network = make_wideresnet
+    network_builder = make_wideresnet
+    resblock_strides = (1,2,3)
     make_conv = my_model.conv_bn_relu
     apooling_cls = torch.nn.AdaptiveMaxPool2d
-    append_logsoftmax = True
 
 @ex.named_config
 def xternalz():
-    get_network = make_xternalz
+    network_builder = make_xternalz
 
 
 @ex.named_config
@@ -113,10 +121,6 @@ get_loss = ex.capture(lambda loss_cls: loss_cls())
 
 @ex.command
 def print_shapes():
-    _print_shapes()
-
-@ex.capture
-def _print_shapes(get_network):
     dataset = get_dataloader('train')
     net = get_network()
     X = next(iter(dataset))[0]
@@ -132,8 +136,7 @@ def train(
         log_gradnorms,
         _run,
         optimizer_params,
-        print_architecture,
-        get_network):
+        print_architecture):
     print('Using device {device}'.format(device=device))
     dataset = get_dataloader('train')
     net = get_network()

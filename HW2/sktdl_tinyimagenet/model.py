@@ -110,7 +110,7 @@ def make_wideresnet(
         n_classes, depth,
         make_conv,
         apooling_cls,
-        append_logsoftmax,
+        resblock_strides,
         widen_factor=3, drop_rate=.2):
     assert (depth - 4) % 6 == 0
     n = (depth - 4) // 6
@@ -118,8 +118,7 @@ def make_wideresnet(
     channels = [16] + [2**(3 + stride) * widen_factor for stride in [1, 2, 3]]
     in_channels = channels[:-1]
     out_channels = channels[1:]
-    strides = [1, 2, 3]
-    for in_channels, out_channels, stride in zip(in_channels, out_channels, strides):
+    for in_channels, out_channels, stride in zip(in_channels, out_channels, resblock_strides):
         layers += [ ResBlock(in_channels, out_channels, make_conv, stride, drop_rate) ]
         for i in range(1, n):
             layers += [ ResBlock(out_channels, out_channels, make_conv, 1, drop_rate) ]
@@ -132,6 +131,4 @@ def make_wideresnet(
                 channels[-1],
                 n_classes),
             ]
-    if append_logsoftmax:
-        layers += [torch.nn.LogSoftmax(-1)]
     return torch.nn.Sequential(*layers)
