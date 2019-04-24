@@ -58,7 +58,6 @@ def wideresnet():
     get_network = make_wideresnet
     make_conv = my_model.conv_bn_relu
     apooling_cls = torch.nn.AdaptiveMaxPool2d
-    apooling_output_size = (20, 20)
     append_logsoftmax = True
 
 @ex.named_config

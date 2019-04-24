@@ -110,7 +110,6 @@ def make_wideresnet(
         n_classes, depth,
         make_conv,
         apooling_cls,
-        apooling_output_size,
         append_logsoftmax,
         widen_factor=3, drop_rate=.2):
     assert (depth - 4) % 6 == 0
@@ -127,11 +126,10 @@ def make_wideresnet(
     layers += [
             torch.nn.BatchNorm2d(out_channels),
             torch.nn.ReLU(),
-            torch.nn.Conv2d(out_channels, 1, 1),
-            apooling_cls(apooling_output_size),
+            apooling_cls(1),
             Flatten(),
             torch.nn.Linear(
-                np.product(apooling_output_size),
+                channels[-1],
                 n_classes),
             ]
     if append_logsoftmax:
