@@ -2,7 +2,7 @@ import torch
 import sacred
 from sacred import Experiment
 from sacred.observers import FileStorageObserver, TensorboardObserver
-from sktdl_tinyimagenet import model as my_model, datasets
+from sktdl_tinyimagenet import model as my_model, datasets, xternalz_wideresnet
 import math
 import tqdm
 import pprint
@@ -21,12 +21,25 @@ ex = Experiment('sktdl_tinyimagenet', ingredients=[tinyimagenet_ingredient, cifa
 ex.observers.append(FileStorageObserver.create('f_runs'))
 ex.observers.append(TensorboardObserver('runs')) # make .creat() perhaps?
 
+
+make_wideresnet = ex.capture(my_model.make_wideresnet)
+make_xternalz = ex.capture(
+            lambda n_classes, depth, widen_factor, drop_rate:
+            xternalz_wideresnet.WideResNet(
+                depth=depth,
+                num_classes=n_classes,
+                widen_factor=widen_factor,
+                dropRate=drop_rate))
+
 @ex.config
 def config0():
     n_classes = 200
     batch_size = 100
     dataset = get_tinyimagenet
     n_epochs = 10
+    depth = 16
+    widen_factor = 4
+    drop_rate = 0.02
     optimizer_cls = torch.optim.Adam
     adam_params = dict(
             lr=.001,
@@ -42,14 +55,15 @@ def config0():
 
 @ex.named_config
 def wideresnet():
-    get_network = ex.capture(my_model.make_wideresnet)
+    get_network = make_wideresnet
     make_conv = my_model.conv_bn_relu
     apooling_cls = torch.nn.AdaptiveMaxPool2d
     apooling_output_size = (20, 20)
     append_logsoftmax = True
-    depth = 16
-    widen_factor = 4
-    drop_rate = 0.02
+
+@ex.named_config
+def xternalz():
+    get_network = make_xternalz
 
 
 @ex.named_config
