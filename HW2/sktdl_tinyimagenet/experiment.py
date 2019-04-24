@@ -2,7 +2,7 @@ import torch
 import sacred
 from sacred import Experiment
 from sacred.observers import FileStorageObserver, TensorboardObserver
-from sktdl_tinyimagenet import model, datasets
+from sktdl_tinyimagenet import model as my_model, datasets
 import math
 import tqdm
 import pprint
@@ -24,14 +24,7 @@ ex.observers.append(TensorboardObserver('runs')) # make .creat() perhaps?
 @ex.config
 def config0():
     n_classes = 200
-    depth = 16
-    widen_factor = 4
-    drop_rate = 0.02
     batch_size = 100
-    make_conv = model.conv_bn_relu
-    apooling_cls = torch.nn.AdaptiveMaxPool2d
-    apooling_output_size = (20, 20)
-    append_logsoftmax = True
     dataset = get_tinyimagenet
     n_epochs = 10
     optimizer_cls = torch.optim.Adam
@@ -46,6 +39,18 @@ def config0():
     num_workers = 1
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print_architecture = False
+
+@ex.named_config
+def wideresnet():
+    get_network = ex.capture(my_model.make_wideresnet)
+    make_conv = my_model.conv_bn_relu
+    apooling_cls = torch.nn.AdaptiveMaxPool2d
+    apooling_output_size = (20, 20)
+    append_logsoftmax = True
+    depth = 16
+    widen_factor = 4
+    drop_rate = 0.02
+
 
 @ex.named_config
 def use_sgd():
@@ -64,9 +69,6 @@ def cifar10():
 @ex.named_config
 def cifar100():
     dataset = get_cifar100
-
-
-get_network = ex.capture(model.make_wideresnet)
 
 @ex.capture
 def get_optimizer(params, optimizer_cls, optimizer_params):
@@ -97,7 +99,7 @@ def evaluate(model, subset, device, _run):
 get_loss = ex.capture(lambda loss_cls: loss_cls())
 
 @ex.capture
-def train(n_epochs, device, log_norms, log_gradnorms, _run, optimizer_params, print_architecture):
+def train(n_epochs, device, log_norms, log_gradnorms, _run, optimizer_params, print_architecture, get_network):
     print('Using device {device}'.format(device=device))
     dataset = get_dataloader('train')
     net = get_network()
