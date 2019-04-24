@@ -64,6 +64,10 @@ def config0():
     print_architecture = False
 
 @ex.named_config
+def use_avgpool():
+    apooling_cls = torch.nn.AdaptiveAvgPool2d
+
+@ex.named_config
 def wideresnet():
     network_builder = make_wideresnet
     resblock_strides = (1,2,3)
