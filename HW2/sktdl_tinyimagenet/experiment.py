@@ -166,53 +166,60 @@ def train(
         print(net)
     print('Number of parameters: {}'.format(sum(p.numel() for p in net.parameters())))
     print('Entering train loop')
-    it = 0
-    for e in range(n_epochs):
-        total_loss = 0.
-        with tqdm.tqdm(
-                enumerate(dataset),
-                desc='[{}/{}]'.format(e, n_epochs)) as pbar:
-            for b, (X, y) in enumerate(dataset):
-                y = y.to(device, non_blocking=True)
-                X = X.to(device)
-                optimizer.zero_grad()
-                yhat = net(X)
-                obj = loss(yhat, y)
-                obj.backward()
-                optimizer.step()
-                try:
-                    net.eval()
-                    with torch.no_grad():
-                        batch_acc = (yhat.argmax(-1) == y).sum().item()
-                        batch_acc = float(batch_acc)/float(X.shape[0])
-                    total_loss += obj.item()/float(X.shape[0])
-                    _run.log_scalar('batch.loss', obj.item(), it)
-                    _run.log_scalar('batch.accuracy', batch_acc, it)
-                    if not (log_norms or log_gradnorms):
-                        continue
-                    with torch.no_grad():
-                        for name, p in net.named_parameters():
-                            if log_gradnorms:
-                                _run.log_scalar('gradnorm__{}'.format(name), torch.norm(p.grad.data), it)
-                            if log_norms:
-                                _run.log_scalar('norm__{}'.format(name), torch.norm(p.data), it)
-                finally:
-                    net.train()
-                    it = it + 1
-                    pbar.set_postfix_str('batch.accuracy: {:.5f}'.format(batch_acc))
-                    pbar.update(1)
-        _run.log_scalar('train.loss', total_loss, it) # aligning smoothened per-epoch plot and noisy per-iter plots
-        # print('train.loss: {:.6f}'.format(total_loss))
-        test_acc = evaluate(net, 'test')
-        _run.log_scalar('test.accuracy', test_acc, it)
-        # TODO: make a metric-printing observer
-        # print('{}.accuracy: {:.6f}'.format(subset, correct/total))
-        # evaluate(net, 'train')
-        #
-        #
-    filename = 'tmp_weights.pt'
-    torch.save(
-            net.state_dict(),
-            filename
-            )
-    _run.add_artifact(filename, name='weights')
+    it, e, test_acc, total_loss = 0, 0, 0, 0
+    try:
+        for e in range(n_epochs):
+            total_loss = 0.
+            with tqdm.tqdm(
+                    enumerate(dataset),
+                    desc='[{}/{}]'.format(e, n_epochs)) as pbar:
+                for b, (X, y) in enumerate(dataset):
+                    y = y.to(device, non_blocking=True)
+                    X = X.to(device)
+                    optimizer.zero_grad()
+                    yhat = net(X)
+                    obj = loss(yhat, y)
+                    obj.backward()
+                    optimizer.step()
+                    try:
+                        net.eval()
+                        with torch.no_grad():
+                            batch_acc = (yhat.argmax(-1) == y).sum().item()
+                            batch_acc = float(batch_acc)/float(X.shape[0])
+                        total_loss += obj.item()/float(X.shape[0])
+                        _run.log_scalar('batch.loss', obj.item(), it)
+                        _run.log_scalar('batch.accuracy', batch_acc, it)
+                        if not (log_norms or log_gradnorms):
+                            continue
+                        with torch.no_grad():
+                            for name, p in net.named_parameters():
+                                if log_gradnorms:
+                                    _run.log_scalar('gradnorm__{}'.format(name), torch.norm(p.grad.data), it)
+                                if log_norms:
+                                    _run.log_scalar('norm__{}'.format(name), torch.norm(p.data), it)
+                    finally:
+                        net.train()
+                        it = it + 1
+                        pbar.set_postfix_str('batch.accuracy: {:.5f}'.format(batch_acc))
+                        pbar.update(1)
+            _run.log_scalar('train.loss', total_loss, it) # aligning smoothened per-epoch plot and noisy per-iter plots
+            # print('train.loss: {:.6f}'.format(total_loss))
+            test_acc = evaluate(net, 'test')
+            _run.log_scalar('test.accuracy', test_acc, it)
+            # TODO: make a metric-printing observer
+            # print('{}.accuracy: {:.6f}'.format(subset, correct/total))
+            # evaluate(net, 'train')
+            #
+            #
+    except KeyboardInterrupt:
+        print('Last test acc: {:.5f}'.format(test_acc))
+        print('Interrupted at epoch {}/{}'.format(e, n_epochs))
+        print('Currently accumulated loss: {:.5f}'.format(total_loss))
+        pbar.update(0)
+    finally:
+        filename = 'tmp_weights.pt'
+        torch.save(
+                net.state_dict(),
+                filename
+                )
+        _run.add_artifact(filename, name='weights')
