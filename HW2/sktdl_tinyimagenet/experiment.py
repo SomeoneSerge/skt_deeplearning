@@ -112,8 +112,29 @@ def evaluate(model, subset, device, _run):
 
 get_loss = ex.capture(lambda loss_cls: loss_cls())
 
+@ex.command
+def print_shapes():
+    _print_shapes()
+
 @ex.capture
-def train(n_epochs, device, log_norms, log_gradnorms, _run, optimizer_params, print_architecture, get_network):
+def _print_shapes(get_network):
+    dataset = get_dataloader('train')
+    net = get_network()
+    X = next(iter(dataset))[0]
+    yhat = net(X)
+    print('Input shapes are {}'.format(tuple(X.shape)))
+    print('Output shapes are {}'.format(tuple(yhat.shape)))
+
+@ex.capture
+def train(
+        n_epochs,
+        device,
+        log_norms,
+        log_gradnorms,
+        _run,
+        optimizer_params,
+        print_architecture,
+        get_network):
     print('Using device {device}'.format(device=device))
     dataset = get_dataloader('train')
     net = get_network()
@@ -148,7 +169,7 @@ def train(n_epochs, device, log_norms, log_gradnorms, _run, optimizer_params, pr
                 y = y.to(device, non_blocking=True)
                 X = X.to(device)
                 optimizer.zero_grad()
-                yhat = net.forward(X)
+                yhat = net(X)
                 obj = loss(yhat, y)
                 obj.backward()
                 optimizer.step()
