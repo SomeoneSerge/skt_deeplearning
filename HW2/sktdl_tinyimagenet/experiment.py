@@ -24,9 +24,10 @@ ex.observers.append(TensorboardObserver('runs')) # make .creat() perhaps?
 
 make_wideresnet = ex.capture(my_model.make_wideresnet)
 make_xternalz = ex.capture(
-            lambda n_classes, depth, widen_factor, drop_rate:
+            lambda n_classes, depth, widen_factor, drop_rate, apooling_cls:
             xternalz_wideresnet.WideResNet(
                 depth=depth,
+                apooling_cls=apooling_cls,
                 num_classes=n_classes,
                 widen_factor=widen_factor,
                 dropRate=drop_rate))
@@ -48,6 +49,7 @@ def config0():
     depth = 16
     widen_factor = 4
     drop_rate = 0.02
+    apooling_cls = torch.nn.AdaptiveMaxPool2d
     optimizer_cls = torch.optim.Adam
     adam_params = dict(
             lr=.001,
@@ -66,7 +68,6 @@ def wideresnet():
     network_builder = make_wideresnet
     resblock_strides = (1,2,3)
     make_conv = my_model.conv_bn_relu
-    apooling_cls = torch.nn.AdaptiveMaxPool2d
 
 @ex.named_config
 def xternalz():
