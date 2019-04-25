@@ -74,6 +74,10 @@ def wideresnet():
     make_conv = my_model.conv_bn_relu
 
 @ex.named_config
+bn_relu_conv():
+    make_conv = my_model.bn_relu_conv
+
+@ex.named_config
 def xternalz():
     network_builder = make_xternalz
 
