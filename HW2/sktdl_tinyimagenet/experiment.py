@@ -48,7 +48,7 @@ def config0():
     n_epochs = 10
     depth = 16
     widen_factor = 4
-    drop_rate = 0.02
+    drop_rate = 0.2
     apooling_cls = torch.nn.AdaptiveMaxPool2d
     optimizer_cls = torch.optim.Adam
     adam_params = dict(
