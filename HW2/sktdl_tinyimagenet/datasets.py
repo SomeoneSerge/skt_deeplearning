@@ -9,9 +9,29 @@ from sacred import Ingredient
 tinyimagenet_ingredient = Ingredient('tinyimagenet')
 cifar_ingredient = Ingredient('cifar')
 
+COMMON_TRANSFORMS = dict(
+        train=torchvision.transforms.Compose([
+            torchvision.transforms.RandomAffine(
+                degrees=15,
+                translate=(.1, .1),
+                scale=(.9, 1.1),
+                ),
+            torchvision.transforms.RandomHorizontalFlip(.5),
+            torchvision.transforms.ToTensor(),
+            ]),
+        test=torchvision.transforms.ToTensor(),
+        val=torchvision.transforms.ToTensor(),
+        )
+
 @cifar_ingredient.config
 def cifar_cfg():
     download_path='cifar'
+
+@tinyimagenet_ingredient.config
+def tinyimagenet_cfg():
+    dataset_name = 'tiny-imagenet-200'
+    download_path = '.'
+    download_url = 'http://cs231n.stanford.edu/tiny-imagenet-200.zip'
 
 @cifar_ingredient.capture
 def get_cifar10(subset, download_path):
@@ -19,7 +39,7 @@ def get_cifar10(subset, download_path):
             download_path,
             train=subset == 'train',
             download=True,
-            transform=torchvision.transforms.ToTensor())
+            transform=COMMON_TRANSFORMS.get(subset))
 
 @cifar_ingredient.capture
 def get_cifar100(subset, download_path):
@@ -27,14 +47,8 @@ def get_cifar100(subset, download_path):
             download_path,
             train=subset == 'train',
             download=True,
-            transform=torchvision.transforms.ToTensor())
+            transform=COMMON_TRANSFORMS.get(subset))
 
-
-@tinyimagenet_ingredient.config
-def tinyimagenet_config():
-    dataset_name = 'tiny-imagenet-200'
-    download_path = '.'
-    download_url = 'http://cs231n.stanford.edu/tiny-imagenet-200.zip'
 
 @tinyimagenet_ingredient.capture
 def get_tinyimagenet(
@@ -49,11 +63,7 @@ def get_tinyimagenet(
         # in experiment.py, thus binding manually
         download_tinyimagenet()
     assert os.path.exists(dataset_path)
-    transforms = torchvision.transforms.Compose([
-            # torchvision.transforms.RandomRotation(20),
-            # torchvision.transforms.RandomHorizontalFlip(0.5),
-            torchvision.transforms.ToTensor(),
-            ])
+    transforms = COMMON_TRANSFORMS.get(subset)
     image_folder = torchvision.datasets.ImageFolder(dataset_path, transforms)
     return image_folder
 
