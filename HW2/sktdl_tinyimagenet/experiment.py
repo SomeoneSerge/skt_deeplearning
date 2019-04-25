@@ -62,6 +62,8 @@ def config0():
     num_workers = 1
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     print_architecture = False
+    evaluate_on = ('val',)
+    validate_on = tuple()
 
 @ex.named_config
 def use_avgpool():
@@ -95,10 +97,14 @@ def use_sgd():
 @ex.named_config
 def cifar10():
     dataset = get_cifar10
+    evaluate_on = ('test',)
+    validate_on = tuple()
 
 @ex.named_config
 def cifar100():
     dataset = get_cifar100
+    evaluate_on = ('test',)
+    validate_on = tuple()
 
 @ex.capture
 def get_optimizer(params, optimizer_cls, optimizer_params):
@@ -114,6 +120,21 @@ def get_dataloader(
     batches = torch.utils.data.DataLoader(image_folder, batch_size, num_workers)
     return batches
 
+def _xternalz_corrects(output, target, topk=(1,)):
+    """Computes the precision@k for the specified values of k"""
+    maxk = max(topk)
+    batch_size = target.size(0)
+
+    _, pred = output.topk(maxk, 1, True, True)
+    pred = pred.t()
+    correct = pred.eq(target.view(1, -1).expand_as(pred))
+
+    res = []
+    for k in topk:
+        correct_k = correct[:k].view(-1).float().sum(0)
+        res.append(correct_k)
+    return res
+
 @ex.capture
 def _evaluate(model, subset, device):
     dataset = get_dataloader(subset)
@@ -123,7 +144,8 @@ def _evaluate(model, subset, device):
         for X, y in dataset:
             y = y.to(device, non_blocking=True)
             X = X.to(device)
-            correct += (model(X).argmax(-1) == y).sum().item()
+            # correct += (model(X).argmax(-1) == y).sum().item()
+            correct += _xternalz_corrects(model(X), y)[0]
             total += int(X.shape[0])
     return correct/total
 
@@ -152,7 +174,9 @@ def train(
         log_gradnorms,
         _run,
         optimizer_params,
-        print_architecture):
+        print_architecture,
+        evaluate_on,
+        validate_on):
     print('Using device {device}'.format(device=device))
     dataset = get_dataloader('train')
     net = get_network()
@@ -214,8 +238,8 @@ def train(
                         pbar.update(1)
             _run.log_scalar('train.loss', total_loss, it)
             net.eval()
-            evaluate(net, 'train', it)
-            evaluate(net, 'test', it)
+            for subset in evaluate_on:
+                evaluate(net, subset, it)
     except KeyboardInterrupt:
         print('Last test acc: {:.5f}'.format(test_acc))
         print('Interrupted at epoch {}/{}'.format(1 + e, n_epochs))
@@ -228,4 +252,5 @@ def train(
                 filename
                 )
         _run.add_artifact(filename, name='weights')
-        evaluate(net, 'val', it)
+        for subset in validate_on:
+            evaluate(net, subset, it)
