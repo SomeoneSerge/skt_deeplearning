@@ -207,7 +207,7 @@ def train(
             total_loss = 0.
             with tqdm.tqdm(
                     enumerate(dataset),
-                    desc='[{}/{}]'.format(e, n_epochs)) as pbar:
+                    desc='[{}/{}]'.format(e + 1, n_epochs)) as pbar:
                 for b, (X, y) in enumerate(dataset):
                     net.train()
                     y = y.to(device, non_blocking=True)
