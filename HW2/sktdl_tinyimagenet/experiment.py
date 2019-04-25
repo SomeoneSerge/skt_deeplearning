@@ -217,7 +217,7 @@ def train(
             #
     except KeyboardInterrupt:
         print('Last test acc: {:.5f}'.format(test_acc))
-        print('Interrupted at epoch {}/{}'.format(e, n_epochs))
+        print('Interrupted at epoch {}/{}'.format(1 + e, n_epochs))
         print('Currently accumulated loss: {:.5f}'.format(total_loss))
         pbar.update(0)
     finally:
