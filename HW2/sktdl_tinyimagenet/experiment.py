@@ -185,6 +185,7 @@ def train(
                     enumerate(dataset),
                     desc='[{}/{}]'.format(e, n_epochs)) as pbar:
                 for b, (X, y) in enumerate(dataset):
+                    net.train()
                     y = y.to(device, non_blocking=True)
                     X = X.to(device)
                     optimizer.zero_grad()
@@ -208,12 +209,11 @@ def train(
                             if log_norms:
                                 _run.log_scalar('norm__{}'.format(name), torch.norm(p.data), it)
                     finally:
-                        net.train()
                         it = it + 1
                         pbar.set_postfix_str('batch.accuracy: {:.5f}'.format(batch_acc))
                         pbar.update(1)
-            _run.log_scalar('train.loss', total_loss, it) # aligning smoothened per-epoch plot and noisy per-iter plots
-            # print('train.loss: {:.6f}'.format(total_loss))
+            _run.log_scalar('train.loss', total_loss, it)
+            net.eval()
             evaluate(net, 'train', it)
             evaluate(net, 'test', it)
     except KeyboardInterrupt:
