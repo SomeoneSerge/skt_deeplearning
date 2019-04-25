@@ -115,9 +115,10 @@ def get_dataloader(
     return batches
 
 @ex.capture
-def evaluate(model, subset, device, _run):
+def _evaluate(model, subset, device):
     dataset = get_dataloader(subset)
     correct, total = 0, 0
+    model.eval()
     with torch.no_grad():
         for X, y in dataset:
             y = y.to(device, non_blocking=True)
@@ -125,6 +126,12 @@ def evaluate(model, subset, device, _run):
             correct += (model(X).argmax(-1) == y).sum().item()
             total += int(X.shape[0])
     return correct/total
+
+@ex.capture
+def evaluate(model, subset, global_it, _run):
+    acc = _evaluate(model, subset)
+    _run.log_scalar('{}.accuracy'.format(subset), acc, global_it)
+    print('[{:5}] {}.accuracy: {:.5f}'.format(global_it, subset, acc))
 
 get_loss = ex.capture(lambda loss_cls: loss_cls())
 
@@ -190,17 +197,16 @@ def train(
                         with torch.no_grad():
                             batch_acc = (yhat.argmax(-1) == y).sum().item()
                             batch_acc = float(batch_acc)/float(X.shape[0])
-                        total_loss += obj.item()/float(X.shape[0])
+                            total_loss += obj.item()/float(X.shape[0])
                         _run.log_scalar('batch.loss', obj.item(), it)
                         _run.log_scalar('batch.accuracy', batch_acc, it)
                         if not (log_norms or log_gradnorms):
                             continue
-                        with torch.no_grad():
-                            for name, p in net.named_parameters():
-                                if log_gradnorms:
-                                    _run.log_scalar('gradnorm__{}'.format(name), torch.norm(p.grad.data), it)
-                                if log_norms:
-                                    _run.log_scalar('norm__{}'.format(name), torch.norm(p.data), it)
+                        for name, p in net.named_parameters():
+                            if log_gradnorms:
+                                _run.log_scalar('gradnorm__{}'.format(name), torch.norm(p.grad.data), it)
+                            if log_norms:
+                                _run.log_scalar('norm__{}'.format(name), torch.norm(p.data), it)
                     finally:
                         net.train()
                         it = it + 1
@@ -208,14 +214,10 @@ def train(
                         pbar.update(1)
             _run.log_scalar('train.loss', total_loss, it) # aligning smoothened per-epoch plot and noisy per-iter plots
             # print('train.loss: {:.6f}'.format(total_loss))
-            test_acc = evaluate(net, 'test')
-            _run.log_scalar('test.accuracy', test_acc, it)
-            # TODO: make a metric-printing observer
-            # print('{}.accuracy: {:.6f}'.format(subset, correct/total))
-            # evaluate(net, 'train')
-            #
-            #
+            evaluate(net, 'train', it)
+            evaluate(net, 'test', it)
     except KeyboardInterrupt:
+        evaluate(net, 'val', it)
         print('Last test acc: {:.5f}'.format(test_acc))
         print('Interrupted at epoch {}/{}'.format(1 + e, n_epochs))
         print('Currently accumulated loss: {:.5f}'.format(total_loss))
