@@ -217,7 +217,6 @@ def train(
             evaluate(net, 'train', it)
             evaluate(net, 'test', it)
     except KeyboardInterrupt:
-        evaluate(net, 'val', it)
         print('Last test acc: {:.5f}'.format(test_acc))
         print('Interrupted at epoch {}/{}'.format(1 + e, n_epochs))
         print('Currently accumulated loss: {:.5f}'.format(total_loss))
@@ -229,3 +228,4 @@ def train(
                 filename
                 )
         _run.add_artifact(filename, name='weights')
+        evaluate(net, 'val', it)
