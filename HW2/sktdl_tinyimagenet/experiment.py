@@ -120,21 +120,6 @@ def get_dataloader(
     batches = torch.utils.data.DataLoader(image_folder, batch_size, num_workers)
     return batches
 
-def _xternalz_corrects(output, target, topk=(1,)):
-    """Computes the precision@k for the specified values of k"""
-    maxk = max(topk)
-    batch_size = target.size(0)
-
-    _, pred = output.topk(maxk, 1, True, True)
-    pred = pred.t()
-    correct = pred.eq(target.view(1, -1).expand_as(pred))
-
-    res = []
-    for k in topk:
-        correct_k = correct[:k].view(-1).float().sum(0)
-        res.append(correct_k)
-    return res
-
 @ex.capture
 def _evaluate(model, subset, device):
     dataset = get_dataloader(subset)
@@ -144,8 +129,7 @@ def _evaluate(model, subset, device):
         for X, y in dataset:
             y = y.to(device, non_blocking=True)
             X = X.to(device)
-            # correct += (model(X).argmax(-1) == y).sum().item()
-            correct += _xternalz_corrects(model(X), y)[0]
+            correct += float((model(X).argmax(-1) == y).sum().item())
             total += int(X.shape[0])
     return correct/total
 
@@ -248,9 +232,19 @@ def train(
     finally:
         filename = 'tmp_weights.pt'
         torch.save(
-                net.state_dict(),
+                net.to(torch.device('cpu')).state_dict(),
                 filename
                 )
         _run.add_artifact(filename, name='weights')
         for subset in validate_on:
             evaluate(net, subset, it)
+
+
+def register_cmd_evaluate():
+    @ex.command(unobserved=True)
+    def evaluate(weights: str, subset: str, device):
+        net = torch.load(weights)
+        net.to(device)
+        acc = _evaluate(net, get_dataloader(subset))
+        print('{}.accuracy: {:.5f}'.format(acc))
+register_cmd_evaluate()
