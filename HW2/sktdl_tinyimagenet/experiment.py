@@ -233,10 +233,9 @@ def train(
         pbar.update(0)
     finally:
         filename = 'tmp_weights.pt'
-        torch.save(
-                net.to(torch.device('cpu')).state_dict(),
-                filename
-                )
+        state = net.to(torch.device('cpu')).state_dict()
+        torch.save(state, filename)
+        net.load_state_dict(torch.load(filename)) # to make sure shapes really coincide
         _run.add_artifact(filename, name='weights')
         for subset in validate_on:
             evaluate(net, subset, it)
