@@ -152,6 +152,10 @@ def print_shapes():
     print('Input shapes are {}'.format(tuple(X.shape)))
     print('Output shapes are {}'.format(tuple(yhat.shape)))
 
+@ex.command
+def print_architecture():
+    print(get_network())
+
 @ex.capture
 def train(
         n_epochs,
