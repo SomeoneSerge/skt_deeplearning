@@ -33,8 +33,10 @@ make_xternalz = ex.capture(
                 dropRate=drop_rate))
 
 @ex.capture
-def get_network(network_builder, append_logsoftmax):
-    net = network_builder()
+def get_network(
+        network_builder, n_classes, depth, make_conv, apooling_cls, resblock_strides,
+        append_logsoftmax, _config):
+    net = network_builder(n_classes, depth, make_conv, apooling_cls, resblock_strides)
     if append_logsoftmax:
         net = torch.nn.Sequential(net, torch.nn.LogSoftmax(-1))
     return net
@@ -238,7 +240,6 @@ def train(
         _run.add_artifact(filename, name='weights')
         for subset in validate_on:
             evaluate(net, subset, it)
-
 
 def register_cmd_evaluate():
     @ex.command(unobserved=True)
