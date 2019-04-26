@@ -243,7 +243,8 @@ def train(
 def register_cmd_evaluate():
     @ex.command(unobserved=True)
     def evaluate(weights: str, subset: str, device):
-        net = torch.load(weights)
+        net = get_network()
+        net.load_state_dict(torch.load(weights))
         net.to(device)
         acc = _evaluate(net, get_dataloader(subset))
         print('{}.accuracy: {:.5f}'.format(acc))
