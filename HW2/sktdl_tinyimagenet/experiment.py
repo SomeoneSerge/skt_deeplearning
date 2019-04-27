@@ -22,8 +22,8 @@ ex.observers.append(FileStorageObserver.create('f_runs'))
 ex.observers.append(TensorboardObserver('runs')) # make .creat() perhaps?
 
 
-make_wideresnet = ex.capture(my_model.make_wideresnet)
-make_xternalz = ex.capture(
+make_wideresnet = (my_model.make_wideresnet)
+make_xternalz = (
             lambda n_classes, depth, widen_factor, drop_rate, apooling_cls:
             xternalz_wideresnet.WideResNet(
                 depth=depth,
@@ -57,6 +57,7 @@ def config0():
             lr=.001,
             betas=[.6, .999]
             )
+    # lambda won't be saved in config.json
     optimizer_params = ex.capture(lambda adam_params: adam_params)
     loss_cls = torch.nn.CrossEntropyLoss
     log_norms = False

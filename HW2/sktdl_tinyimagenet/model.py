@@ -113,6 +113,7 @@ def make_wideresnet(
         resblock_strides,
         widen_factor=3, drop_rate=.2):
     assert (depth - 4) % 6 == 0
+    print('widen={}, depth={}'.format(widen_factor, depth))
     n = (depth - 4) // 6
     layers = [ torch.nn.Conv2d(3, 16, 1) ]
     channels = [16] + [2**(3 + k) * widen_factor for k in [1, 2, 3]]
