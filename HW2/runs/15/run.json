@@ -1,0 +1,95 @@
+{
+  "artifacts": [
+    "weights"
+  ],
+  "command": "main",
+  "experiment": {
+    "base_dir": "/content/skt_deeplearning/HW2/sktdl_tinyimagenet",
+    "dependencies": [
+      "numpy==1.16.3",
+      "sacred==0.7.4-onurgu",
+      "sktdl-tinyimagenet==0.0.0",
+      "torch==1.0.1.post2",
+      "torchvision==0.2.2.post3",
+      "tqdm==4.31.1"
+    ],
+    "mainfile": "experiment.py",
+    "name": "sktdl_tinyimagenet",
+    "repositories": [],
+    "sources": [
+      [
+        "datasets.py",
+        "_sources/datasets_47d4af0e3a23d3f5589cc4ae9ff1dbf4.py"
+      ],
+      [
+        "experiment.py",
+        "_sources/experiment_568edb44fa7aeee9948ce3fb1f66f48c.py"
+      ],
+      [
+        "model.py",
+        "_sources/model_10ac795b472e00297999ae47a9b8978c.py"
+      ],
+      [
+        "xternalz_wideresnet.py",
+        "_sources/xternalz_wideresnet_7403a6989cd780a9bded666ba362176e.py"
+      ]
+    ]
+  },
+  "heartbeat": "2019-04-27T16:41:47.325565",
+  "host": {
+    "ENV": {},
+    "cpu": "Intel(R) Xeon(R) CPU @ 2.30GHz",
+    "gpus": {
+      "driver_version": "410.79",
+      "gpus": [
+        {
+          "model": "Tesla T4",
+          "persistence_mode": false,
+          "total_memory": 15079
+        }
+      ]
+    },
+    "hostname": "842ebc1a8140",
+    "os": [
+      "Linux",
+      "Linux-4.14.79+-x86_64-with-Ubuntu-18.04-bionic"
+    ],
+    "python_version": "3.6.7"
+  },
+  "meta": {
+    "command": "main",
+    "options": {
+      "--beat_interval": null,
+      "--capture": null,
+      "--comment": null,
+      "--debug": false,
+      "--enforce_clean": false,
+      "--file_storage": null,
+      "--force": false,
+      "--help": false,
+      "--loglevel": null,
+      "--mongo_db": null,
+      "--name": null,
+      "--pdb": false,
+      "--print_config": false,
+      "--priority": null,
+      "--queue": false,
+      "--sql": null,
+      "--tiny_db": null,
+      "--unobserved": false,
+      "COMMAND": null,
+      "UPDATE": [
+        "runs/9/config.json",
+        "n_epochs=20",
+        "drop_rate=.2"
+      ],
+      "help": false,
+      "with": true
+    }
+  },
+  "resources": [],
+  "result": null,
+  "start_time": "2019-04-27T14:09:24.866433",
+  "status": "COMPLETED",
+  "stop_time": "2019-04-27T16:41:47.321427"
+}

@@ -1,0 +1,6 @@
+torch>=1.0
+torchvision
+pytorch-ignite
+sacred
+imageio
+

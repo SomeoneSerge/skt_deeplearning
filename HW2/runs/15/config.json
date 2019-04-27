@@ -1,0 +1,72 @@
+{
+  "adam_params": {
+    "betas": [
+      0.4,
+      0.99
+    ],
+    "lr": 0.001
+  },
+  "apooling_cls": {
+    "py/type": "torch.nn.modules.pooling.AdaptiveMaxPool2d"
+  },
+  "append_logsoftmax": true,
+  "batch_size": 100,
+  "cifar": {
+    "download_path": "cifar"
+  },
+  "dataset": {
+    "py/function": "sktdl_tinyimagenet.datasets.get_tinyimagenet"
+  },
+  "depth": 16,
+  "device": {
+    "py/reduce": [
+      {
+        "py/type": "torch.device"
+      },
+      {
+        "py/tuple": [
+          "cuda",
+          0
+        ]
+      },
+      null,
+      null,
+      null
+    ]
+  },
+  "drop_rate": 0.2,
+  "evaluate_on": [
+    "val"
+  ],
+  "log_gradnorms": false,
+  "log_norms": false,
+  "loss_cls": {
+    "py/type": "torch.nn.modules.loss.CrossEntropyLoss"
+  },
+  "make_conv": {
+    "py/function": "sktdl_tinyimagenet.model.conv_bn_relu"
+  },
+  "n_classes": 200,
+  "n_epochs": 20,
+  "network_builder": {
+    "py/function": "sktdl_tinyimagenet.model.make_wideresnet"
+  },
+  "num_workers": 1,
+  "optimizer_cls": {
+    "py/type": "torch.optim.adam.Adam"
+  },
+  "print_architecture": false,
+  "resblock_strides": [
+    1,
+    2,
+    3
+  ],
+  "seed": 425800966,
+  "tinyimagenet": {
+    "dataset_name": "tiny-imagenet-200",
+    "download_path": ".",
+    "download_url": "http://cs231n.stanford.edu/tiny-imagenet-200.zip"
+  },
+  "validate_on": [],
+  "widen_factor": 4
+}
