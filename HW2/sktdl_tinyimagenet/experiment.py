@@ -255,5 +255,5 @@ def register_cmd_evaluate():
         net.load_state_dict(torch.load(weights))
         net.to(device)
         acc = _evaluate(net, subset=subset)
-        print('{}.accuracy: {:.5f}'.format(acc))
+        print('{}.accuracy: {:.5f}'.format(subset, acc))
 register_cmd_evaluate()
