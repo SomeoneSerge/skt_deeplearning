@@ -43,10 +43,12 @@ class CellsSegmentation(data.Dataset):
     def __getitem__(self, index):
         x = self.i2x[index]
         y = self.i2y[index]
+        y = (y != 0).float()
         x = Image.open(x).convert('RGB')
         y = Image.open(y)
-        if self.transform:
+        if self.x_transform:
             x = self.x_transform(x)
+        if self.y_transform:
             y = self.y_transform(y)
         return x, y
 
