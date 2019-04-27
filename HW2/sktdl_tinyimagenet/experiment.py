@@ -19,7 +19,7 @@ from .datasets import get_tinyimagenet, get_cifar10, get_cifar100, tinyimagenet_
 
 
 ex = Experiment('sktdl_tinyimagenet', ingredients=[tinyimagenet_ingredient, cifar_ingredient])
-ex.observers.append(FileStorageObserver.create('f_runs'))
+ex.observers.append(FileStorageObserver.create('runs'))
 ex.observers.append(TensorboardObserver('runs')) # make .creat() perhaps?
 
 
