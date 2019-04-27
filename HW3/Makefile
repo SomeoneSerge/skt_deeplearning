@@ -1,4 +1,4 @@
-.PHONY: pull data python-deps
+.PHONY: pull data python-deps unzip-cells
 
 
 TEST_CELLS_DATASET=BBBC018_v1_images-fixed/test/00733-actin.DIB.bmp
@@ -26,6 +26,10 @@ losses.py:
 cells.zip:
 	wget https://www.dropbox.com/s/jy34yowcf85ydba/data.zip?dl=0 -O cells.zip
 
-$(TEST_CELLS_DATASET): cells.zip
+
+unzip-cells: cells.zip
 	unzip -fo cells.zip
+
+
+$(TEST_CELLS_DATASET): unzip-cells
 	touch $@
