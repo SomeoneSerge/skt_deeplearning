@@ -27,5 +27,5 @@ cells.zip:
 	wget https://www.dropbox.com/s/jy34yowcf85ydba/data.zip?dl=0 -O cells.zip
 
 $(TEST_CELLS_DATASET): cells.zip
-	unzip -f cells.zip
+	unzip -fo cells.zip
 	touch $@
