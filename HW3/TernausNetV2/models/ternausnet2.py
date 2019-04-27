@@ -8,9 +8,9 @@ import torch.utils.data
 import torch.utils.data.distributed
 from torch.nn import Sequential
 from collections import OrderedDict
-from modules.bn import ABN
+from TernausNetV2.modules.bn import ABN
 
-from modules.wider_resnet import WiderResNet
+from TernausNetV2.modules.wider_resnet import WiderResNet
 
 
 def conv3x3(in_, out):
