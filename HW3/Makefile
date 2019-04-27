@@ -1,10 +1,14 @@
-.PHONY: pull data
+.PHONY: pull data python-deps
 
 
 TEST_CELLS_DATASET=BBBC018_v1_images-fixed/test/00733-actin.DIB.bmp
 
-deps: $(TEST_CELLS_DATASET) ternaus_v2.pt losses.py
+deps: $(TEST_CELLS_DATASET) ternaus_v2.pt losses.py python-deps
 
+
+python-deps:
+	pip install -r requirements.txt
+	pip install .
 
 pull:
 	git pull
