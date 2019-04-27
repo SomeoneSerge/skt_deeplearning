@@ -1,0 +1,3 @@
+[submodule "HW3/TernausNetV2"]
+	path = HW3/TernausNetV2
+	url = https://github.com/ternaus/TernausNetV2.git
