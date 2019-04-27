@@ -6,6 +6,7 @@ from sktdl_tinyimagenet import model as my_model, datasets, xternalz_wideresnet
 import math
 import tqdm
 import pprint
+import inspect
 
 
 from .datasets import get_tinyimagenet, get_cifar10, get_cifar100, tinyimagenet_ingredient, cifar_ingredient
@@ -36,7 +37,9 @@ make_xternalz = ex.capture(
 def get_network(
         network_builder,
         append_logsoftmax, _config):
-    net = ex.capture(network_builder)()
+    net = ex.capture(network_builder)
+    args, kwargs, = net.signature.construct_arguments(tuple(), dict(), net.config)
+    net = net(*args, **kwargs)
     if append_logsoftmax:
         net = torch.nn.Sequential(net, torch.nn.LogSoftmax(-1))
     return net

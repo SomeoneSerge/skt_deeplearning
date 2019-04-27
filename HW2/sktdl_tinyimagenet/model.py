@@ -106,14 +106,13 @@ class Flatten(torch.nn.Module):
     def forward(self, input):
         return torch.flatten(input, start_dim=1)
 
-def make_wideresnet(
+def make_wideresnet(*,
         n_classes, depth,
         make_conv,
         apooling_cls,
         resblock_strides,
         widen_factor, drop_rate):
     assert (depth - 4) % 6 == 0
-    print('widen={}, depth={}'.format(widen_factor, depth))
     n = (depth - 4) // 6
     layers = [ torch.nn.Conv2d(3, 16, 1) ]
     channels = [16] + [2**(3 + k) * widen_factor for k in [1, 2, 3]]
