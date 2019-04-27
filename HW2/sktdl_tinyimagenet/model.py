@@ -115,7 +115,7 @@ def make_wideresnet(
     assert (depth - 4) % 6 == 0
     n = (depth - 4) // 6
     layers = [ torch.nn.Conv2d(3, 16, 1) ]
-    channels = [16] + [2**(3 + stride) * widen_factor for stride in [1, 2, 3]]
+    channels = [16] + [2**(3 + k) * widen_factor for k in [1, 2, 3]]
     in_channels = channels[:-1]
     out_channels = channels[1:]
     for in_channels, out_channels, stride in zip(in_channels, out_channels, resblock_strides):

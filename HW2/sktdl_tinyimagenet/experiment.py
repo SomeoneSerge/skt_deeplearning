@@ -36,7 +36,12 @@ make_xternalz = ex.capture(
 def get_network(
         network_builder, n_classes, depth, make_conv, apooling_cls, resblock_strides,
         append_logsoftmax, _config):
-    net = network_builder(n_classes, depth, make_conv, apooling_cls, resblock_strides)
+    net = network_builder(
+            n_classes=n_classes,
+            depth=depth,
+            make_conv=make_conv,
+            apooling_cls=apooling_cls,
+            resblock_strides=resblock_strides)
     if append_logsoftmax:
         net = torch.nn.Sequential(net, torch.nn.LogSoftmax(-1))
     return net
