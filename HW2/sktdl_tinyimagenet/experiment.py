@@ -254,6 +254,6 @@ def register_cmd_evaluate():
         net = get_network()
         net.load_state_dict(torch.load(weights))
         net.to(device)
-        acc = _evaluate(net, get_dataloader(subset))
+        acc = _evaluate(net, subset=subset)
         print('{}.accuracy: {:.5f}'.format(acc))
 register_cmd_evaluate()
