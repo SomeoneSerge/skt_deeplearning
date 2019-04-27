@@ -22,8 +22,8 @@ ex.observers.append(FileStorageObserver.create('f_runs'))
 ex.observers.append(TensorboardObserver('runs')) # make .creat() perhaps?
 
 
-make_wideresnet = (my_model.make_wideresnet)
-make_xternalz = (
+make_wideresnet = ex.capture(my_model.make_wideresnet)
+make_xternalz = ex.capture(
             lambda n_classes, depth, widen_factor, drop_rate, apooling_cls:
             xternalz_wideresnet.WideResNet(
                 depth=depth,

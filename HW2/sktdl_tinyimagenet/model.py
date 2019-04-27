@@ -111,7 +111,7 @@ def make_wideresnet(
         make_conv,
         apooling_cls,
         resblock_strides,
-        widen_factor=3, drop_rate=.2):
+        widen_factor, drop_rate):
     assert (depth - 4) % 6 == 0
     print('widen={}, depth={}'.format(widen_factor, depth))
     n = (depth - 4) // 6
