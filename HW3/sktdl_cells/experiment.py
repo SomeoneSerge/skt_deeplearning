@@ -85,7 +85,7 @@ def print_parameternames():
 
 
 @ex.automain
-def main(device, num_epochs):
+def main(device, num_epochs, _run):
     model = make_model()
     dataloader_train = make_data('train')
     dataloader_val = make_data('val')
@@ -93,7 +93,7 @@ def main(device, num_epochs):
     # loss = lambda yhat, y: neg_dice_coeff(y, yhat)
     loss = lambda yhat, y: 1. - dice_loss.dice_coeff(yhat, y.float())
     device = torch.device(device)
-    tensorboard = tensorboardX.SummaryWriter(RUNS_DIR)
+    tensorboard = tensorboardX.SummaryWriter(os.path.join(RUNS_DIR, str(_run._id)))
     def log_iou(iou, epoch):
         tensorboard.add_scalar('val.iou', iou, epoch)
     def log_trainloss(trainloss, iteration):
