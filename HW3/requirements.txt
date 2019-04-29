@@ -1,0 +1,12 @@
+torch>=1.0
+torchvision
+pytorch-ignite
+git+https://github.com/newkozlukov/sacred.git
+imageio
+cython
+matplotlib
+pydensecrf
+numpy
+Pillow
+torch
+torchvision
