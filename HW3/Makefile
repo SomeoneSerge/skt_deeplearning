@@ -5,8 +5,7 @@ all: BBBC018_v1_images-fixed python-deps pull
 
 
 python-deps:
-	pip install -U -r sktdl_cells/requirements.txt
-	pip install -U -r pytorch_unet/requirements.txt
+	pip install -U -r requirements.txt
 	pip install -U .
 
 pull:
