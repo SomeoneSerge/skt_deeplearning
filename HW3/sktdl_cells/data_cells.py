@@ -51,11 +51,13 @@ class CellsSegmentation(data.Dataset):
     def __init__(
             self,
             subset,
+            clone_times,
             source_path='BBBC018_v1_images-fixed',
             target_path='BBBC018_v1_outlines',
             xy_transform=None
             ):
         assert subset in ['train', 'test', 'val']
+        self.clone_times = clone_times
         source_path, target_path = [os.path.join(bd, subset) for bd in (source_path, target_path)]
         self.source_path = source_path
         self.target_path = target_path
@@ -85,6 +87,7 @@ class CellsSegmentation(data.Dataset):
                     i2path[i] = os.path.join(dirpath, filename)
 
     def __getitem__(self, index):
+        index = index % len(self.i2x)
         x = self.i2x[index]
         y = self.i2y[index]
         x = Image.open(x).convert('RGB')
@@ -100,10 +103,11 @@ class CellsSegmentation(data.Dataset):
             name=self.__class__.__name__,
             source_path=self.source_path,
             target_path=self.target_path,
-            n_samples=len(self),
+            n_samples=len(self.i2x),
+            n_samples_augmented=len(self),
             x_transform=self.x_transform.__class__.__name__,
             y_transform=self.y_transform.__class__.__name__,
             ))
 
     def __len__(self):
-        return len(self.i2x)
+        return self.clone_times * len(self.i2x)

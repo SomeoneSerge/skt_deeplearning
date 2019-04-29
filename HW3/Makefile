@@ -1,11 +1,14 @@
-.PHONY: pull data python-deps
+.PHONY: pull data install_self
 
 
-all: pull BBBC018_v1_images-fixed python-deps
+all: pull BBBC018_v1_images-fixed .requirements
 
 
-python-deps:
+.requirements: requirements.txt
 	pip install -U -r requirements.txt
+	cp requirements.txt .requirements
+
+install_self:
 	pip install -U .
 
 pull:
@@ -19,6 +22,6 @@ pull:
 cells.zip:
 	wget -c https://www.dropbox.com/s/jy34yowcf85ydba/data.zip?dl=0 -O cells.zip
 
+
 BBBC018_v1_images-fixed: cells.zip
-	unzip -fo cells.zip
-	touch $@
+	unzip cells.zip

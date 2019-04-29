@@ -33,10 +33,16 @@ def make_model(weights_path, device, trainable_params):
     return net
 
 @ex.capture
-def make_data(subset, batch_size, train_transform):
-    transform = CellsTransform(**train_transform) if subset == 'train' else None
-    cells = CellsSegmentation(subset, xy_transform=transform)
-    return DataLoader(cells, batch_size=batch_size)
+def make_data(subset, batch_size, clone_times, train_transform):
+    train = subset == 'train'
+    transform = CellsTransform(**train_transform) if train else None
+    cells = CellsSegmentation(
+            subset,
+            clone_times=clone_times if train else 1,
+            xy_transform=transform)
+    return DataLoader(
+            cells,
+            batch_size=batch_size)
 
 @ex.capture
 def make_optimizer(model, trainable_params, adam_params):
@@ -46,8 +52,9 @@ def make_optimizer(model, trainable_params, adam_params):
 
 @ex.config
 def cfg0():
+    clone_times=500
     weights_path = os.path.join(MODULE_DIR, 'pytorch_unet.pth')
-    batch_size=5
+    batch_size=50
     is_deconv = False
     num_input_channels = 11
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
