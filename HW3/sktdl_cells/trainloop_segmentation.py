@@ -18,20 +18,23 @@ from sktdl_cells.iou import calc_iou
 
 
 
-def calc_iou_torch(y, y_pred):
-    cpu = torch.device('cpu')
-    y_pred, y = output['y_pred'].clone(), output['y'].clone()
-    y_pred, y = y_pred.to(cpu).numpy(), y.to(cpu).numpy()
-    self._iou = calc_iou(ground_truth=y, prediction=y_pred)
-
-IoU = MetricsLambda(
-        calc_iou_torch,
-        lambda output: (output['y'], output['y_pred']))
+class IoU(Metric):
+    def update(self, output):
+        cpu = torch.device('cpu')
+        y_pred, y = output
+        y_pred, y = y_pred.clone(), y.clone() # before .to(cpu), just to make sure
+        y_pred, y = y_pred.to(cpu).numpy(), y.to(cpu).numpy()
+        self._iou = calc_iou(ground_truth=y, prediction=y_pred)
+    def compute(self):
+        return self._iou
+    def reset(self):
+        self._iou = None
 
 
 def train(
         model,
-        dataloader,
+        trainloader,
+        valloader,
         optimizer,
         loss,
         device,
@@ -55,14 +58,14 @@ def train(
     evaluator = create_supervised_evaluator(
             model,
             metrics=dict(
-                iou=IoU
+                iou=IoU()
                 ),
             device=device)
     @trainer.on(Events.EPOCH_COMPLETED)
     def _on_epoch(trainer):
-        evaluator.run(validation_set)
-        log_iou(trainer.state.metrics['iou'], trainer.state.epoch)
+        evaluator.run(valloader)
+        log_iou(evaluator.state.metrics['iou'], trainer.state.epoch)
     @trainer.on(Events.ITERATION_COMPLETED)
     def _on_iter(trainer):
         log_trainloss(trainer.state.output, trainer.state.iteration)
-    trainer.run(dataloader, max_epochs=num_epochs)
+    trainer.run(trainloader, max_epochs=num_epochs)

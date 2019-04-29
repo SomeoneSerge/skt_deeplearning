@@ -10,26 +10,35 @@ import pprint
 
 RE_CELL_IMAGE = re.compile(r'^(?P<id>[0-9]+)-.*\.(?P<ext>(bmp|png))$', re.IGNORECASE)
 
+def _mkrange(x):
+    if isinstance(x, float):
+        return (x, x)
+    else:
+        return x
+
 class CellsTransform:
     def __init__(self,
-            degrees=180.,
-            translate=(1., 1.),
-            scale=(.9, 1.1),
-            crop_size=(64, 64),
-            ):
+            degrees,
+            translate,
+            scale,
+            crop_size):
+        if isinstance(scale, float):
+            scale = (scale, scale)
         self.common_affine = dict(
-                degrees=rot_degrees,
+                degrees=_mkrange(degrees),
                 translate=translate,
-                scale=scale)
-        self.common_crop = dict(size=crop_size)
+                scale_ranges=_mkrange(scale),
+                shears=None)
+        self.common_crop = dict(output_size=_mkrange(crop_size))
         self.to_tensor = transforms.ToTensor()
     def __call__(self, x, y):
-        affine_params = transforms.RandomAffine.get_params(**self.common_affine)
+        affine_params = transforms.RandomAffine.get_params(
+                img_size=x.size, # PIL.Image.size
+                **self.common_affine)
         x, y = TF.affine(x, *affine_params), TF.affine(y, *affine_params)
-        crop_params = transforms.RandomCrop.get_params(**self.common_crop)
+        crop_params = transforms.RandomCrop.get_params(x, **self.common_crop)
         # TODO: possibly some custom ops different for x and y
         x, y = TF.crop(x, *crop_params), TF.crop(y, *crop_params)
-        # x, y = TF.to_tensor(x), TF.to_tensor(y)
         # RETURNS PIL Image
         return x, y
     def __repr__(self):

@@ -6,7 +6,7 @@ from sacred.observers import FileStorageObserver
 import tensorboardX
 import pprint
 
-from sktdl_cells.data_cells import CellsSegmentation
+from sktdl_cells.data_cells import CellsSegmentation, CellsTransform
 from sktdl_cells.trainloop_segmentation import train
 # from sktdl_cells.losses import dice_loss as neg_dice_coeff
 from pytorch_unet import dice_loss
@@ -32,8 +32,9 @@ def make_model(weights_path, device, trainable_params):
     return net
 
 @ex.capture
-def make_data(subset, batch_size, ):
-    cells = CellsSegmentation(subset)
+def make_data(subset, batch_size, train_transform):
+    transform = CellsTransform(**train_transform) if subset == 'train' else None
+    cells = CellsSegmentation(subset, xy_transform=transform)
     return DataLoader(cells, batch_size=batch_size)
 
 @ex.capture
@@ -55,9 +56,13 @@ def cfg0():
         ]) # TODO: check if these params exist
     adam_params = dict(
             lr=1e-3,
-            betas=(.9, .99)
-            )
+            betas=(.9, .99))
     num_epochs = 5
+    train_transform = dict(
+            degrees=180.,
+            translate=(1., 1.),
+            scale=(.9, 1.1),
+            crop_size=(64, 64))
 
 @ex.command(unobserved=True)
 def print_parameternames():
@@ -74,7 +79,8 @@ def print_parameternames():
 @ex.automain
 def main(device, num_epochs):
     model = make_model()
-    dataloader = make_data('train')
+    dataloader_train = make_data('train')
+    dataloader_val = make_data('val')
     optimizer = make_optimizer(model)
     # loss = lambda yhat, y: neg_dice_coeff(y, yhat)
     loss = lambda yhat, y: 1. - dice_loss.dice_coeff(yhat, y.float())
@@ -84,4 +90,4 @@ def main(device, num_epochs):
         tensorboard.add_scalar('val.iou', iou, epoch)
     def log_trainloss(trainloss, iteration):
         tensorboard.add_scalar('train.loss', trainloss, iteration)
-    train(model, dataloader, optimizer, loss, device, num_epochs, log_trainloss, log_iou)
+    train(model, dataloader_train, dataloader_val, optimizer, loss, device, num_epochs, log_trainloss, log_iou)
