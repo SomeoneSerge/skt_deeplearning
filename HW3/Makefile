@@ -1,7 +1,7 @@
 .PHONY: pull data python-deps
 
 
-all: BBBC018_v1_images-fixed python-deps pull
+all: pull BBBC018_v1_images-fixed python-deps
 
 
 python-deps:
