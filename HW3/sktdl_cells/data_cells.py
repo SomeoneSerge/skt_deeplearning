@@ -83,6 +83,7 @@ class CellsSegmentation(data.Dataset):
         if self.xy_transform is not None:
             x, y = self.xy_transform(x, y)
         x, y = TF.to_tensor(x), TF.to_tensor(y)
+        y = (y > 0).byte()
         return x, y
 
     def __repr__(self):

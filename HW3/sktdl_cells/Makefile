@@ -21,10 +21,6 @@ losses.py:
 cells.zip:
 	wget https://www.dropbox.com/s/jy34yowcf85ydba/data.zip?dl=0 -O cells.zip
 
-
-unzip-cells: cells.zip
-	unzip -fo cells.zip
-
-
-$(TEST_CELLS_DATASET): unzip-cells
+$(TEST_CELLS_DATASET): cells.zip
+	unzip cells.zip
 	touch $@

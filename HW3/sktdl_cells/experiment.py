@@ -3,12 +3,13 @@ from torch.optim import Adam
 from torch.utils.data import DataLoader
 import sacred
 from sacred.observers import FileStorageObserver
-
+import tensorboardX
 import pprint
 
 from sktdl_cells.data_cells import CellsSegmentation
 from sktdl_cells.trainloop_segmentation import train
-from sktdl_cells.losses import dice_loss as neg_dice_coeff
+# from sktdl_cells.losses import dice_loss as neg_dice_coeff
+from pytorch_unet import dice_loss
 from pytorch_unet.unet.unet_model import UNet
 import os
 
@@ -17,7 +18,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 ex = sacred.Experiment('sktdl_cells')
-ex.observers.append(FileStorageObserver.create('runs'))
+ex.observers.append(FileStorageObserver.create(os.path.join(MODULE_DIR, 'runs')))
 
 
 @ex.capture
@@ -44,7 +45,7 @@ def make_optimizer(model, trainable_params, adam_params):
 @ex.config
 def cfg0():
     weights_path = os.path.join(MODULE_DIR, 'pytorch_unet.pth')
-    batch_size=100
+    batch_size=5
     is_deconv = False
     num_input_channels = 11
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
@@ -69,11 +70,18 @@ def print_parameternames():
                 for parname, p in net.named_parameters()))
     print(output)
 
+
 @ex.automain
 def main(device, num_epochs):
     model = make_model()
     dataloader = make_data('train')
     optimizer = make_optimizer(model)
-    loss = neg_dice_coeff
+    # loss = lambda yhat, y: neg_dice_coeff(y, yhat)
+    loss = lambda yhat, y: 1. - dice_loss.dice_coeff(yhat, y.float())
     device = torch.device(device)
-    train(model, dataloader, optimizer, loss, device, num_epochs)
+    tensorboard = tensorboardX.SummaryWriter('runs')
+    def log_iou(iou, epoch):
+        tensorboard.add_scalar('val.iou', iou, epoch)
+    def log_trainloss(trainloss, iteration):
+        tensorboard.add_scalar('train.loss', trainloss, iteration)
+    train(model, dataloader, optimizer, loss, device, num_epochs, log_trainloss, log_iou)
