@@ -3,7 +3,7 @@
 
 TEST_CELLS_DATASET=BBBC018_v1_images-fixed/test/00733-actin.DIB.bmp
 
-deps: $(TEST_CELLS_DATASET) ternaus_v2.pt losses.py python-deps
+deps: $(TEST_CELLS_DATASET) losses.py python-deps
 
 
 python-deps:

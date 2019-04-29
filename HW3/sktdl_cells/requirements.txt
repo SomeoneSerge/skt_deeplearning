@@ -3,4 +3,4 @@ torchvision
 pytorch-ignite
 sacred
 imageio
-
+git+https://github.com/lucasb-eyer/pydensecrf.git
