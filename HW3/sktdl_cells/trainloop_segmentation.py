@@ -10,6 +10,8 @@ from ignite.handlers import ModelCheckpoint
 
 from sktdl_cells.iou import calc_iou
 
+import pprint
+
 
 # In the end, ignite's trainloop looks very much like shit,
 # heavily coupling the trainloop itself and IO bullshit
@@ -28,7 +30,7 @@ class IoU(Metric):
     def compute(self):
         return self._iou
     def reset(self):
-        self._iou = None
+        self._iou = 0.
 
 
 def train(

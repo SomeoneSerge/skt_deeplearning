@@ -5,6 +5,9 @@ git+https://github.com/newkozlukov/sacred.git
 imageio
 cython
 matplotlib
-pydensecrf
+git+https://github.com/lucasb-eyer/pydensecrf.git
 numpy
 Pillow
+tensorboardX
+tensorflow
+tensorboard

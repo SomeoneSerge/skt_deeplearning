@@ -91,4 +91,12 @@ def main(device, num_epochs):
         tensorboard.add_scalar('val.iou', iou, epoch)
     def log_trainloss(trainloss, iteration):
         tensorboard.add_scalar('train.loss', trainloss, iteration)
-    train(model, dataloader_train, dataloader_val, optimizer, loss, device, num_epochs, log_trainloss, log_iou)
+    train(model,
+            dataloader_train,
+            dataloader_val,
+            optimizer,
+            loss,
+            device,
+            num_epochs,
+            log_trainloss=log_trainloss,
+            log_iou=log_iou)
