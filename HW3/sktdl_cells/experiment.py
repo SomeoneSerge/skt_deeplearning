@@ -15,10 +15,11 @@ import os
 
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
+RUNS_DIR = os.path.join(MODULE_DIR, 'runs')
 
 
 ex = sacred.Experiment('sktdl_cells')
-ex.observers.append(FileStorageObserver.create(os.path.join(MODULE_DIR, 'runs')))
+ex.observers.append(FileStorageObserver.create(RUNS_DIR))
 
 
 @ex.capture
@@ -85,7 +86,7 @@ def main(device, num_epochs):
     # loss = lambda yhat, y: neg_dice_coeff(y, yhat)
     loss = lambda yhat, y: 1. - dice_loss.dice_coeff(yhat, y.float())
     device = torch.device(device)
-    tensorboard = tensorboardX.SummaryWriter('runs')
+    tensorboard = tensorboardX.SummaryWriter(RUNS_DIR)
     def log_iou(iou, epoch):
         tensorboard.add_scalar('val.iou', iou, epoch)
     def log_trainloss(trainloss, iteration):
