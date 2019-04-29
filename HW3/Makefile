@@ -23,5 +23,5 @@ cells.zip:
 	wget -c https://www.dropbox.com/s/jy34yowcf85ydba/data.zip?dl=0 -O cells.zip
 
 
-BBBC018_v1_images-fixed: cells.zip
-	unzip cells.zip
+.cells.dataset: cells.zip
+	unzip cells.zip 2>&1 > $@
