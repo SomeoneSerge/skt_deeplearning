@@ -66,7 +66,7 @@ def train(
                 ),
             device=device)
     @trainer.on(Events.EPOCH_COMPLETED)
-    def _on_epoch(evaluator):
+    def _on_epoch(trainer):
         evaluator.run(valloader)
         log_iou(evaluator.state.metrics['iou'], trainer.state.epoch)
     @trainer.on(Events.ITERATION_COMPLETED)
