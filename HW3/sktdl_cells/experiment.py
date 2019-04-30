@@ -44,8 +44,8 @@ def get_trainable_params(net):
 @ex.capture
 def make_loss(loss):
     LOSSES = dict(
-            rogertrullo=lambda yhat, y: rogetrullo_diceloss(yhat, y),
-            issamlaradji=lambda yhat, y: issamlaradji_diceloss(yhat, y),
+            rogertrullo=lambda yhat, y: rogetrullo_diceloss(yhat, y.float()),
+            issamlaradji=lambda yhat, y: issamlaradji_diceloss(yhat, y.float()),
             pytorch_unet=lambda yhat, y: 1. - pytorch_unet_dicecoeff(yhat, y.float()),
             # kevinzakka=test_kevinzakka,
             )
