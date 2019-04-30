@@ -54,18 +54,18 @@ def make_loss(loss_impl):
     return LOSSES[loss_impl]
 
 @ex.capture
-def make_iou(iou_impl):
+def make_iou(iou_impl, threshold):
     IMPL = dict(
             vanilla=lambda y_pred, y: (
                 calc_iou_vanilla(
-                    (y_pred > .1).to('cpu').numpy(),
+                    (y_pred > threshold).to('cpu').numpy(),
                     y.to('cpu').numpy())),
             custom=lambda y_pred, y: (
                 float(
-                    ((y_pred > .1) * (y > 0))
+                    ((y_pred > threshold) * (y > 0))
                     .sum())
                 / float(
-                    ((y > 0) | (y_pred > .1))
+                    ((y > 0) | (y_pred > threshold))
                     .sum())
             ))
     return IMPL[iou_impl]
