@@ -70,4 +70,11 @@ def train(
     @trainer.on(Events.ITERATION_COMPLETED)
     def _on_iter(trainer):
         log_trainloss(trainer.state.output, trainer.state.iteration)
+    checkpointer = ModelCheckpoint(
+            weights_path,
+            'weights',
+            save_interval=epochs_per_checkpoint,
+            n_saved=2,
+            create_dir=True)
+    trainer.add_event_handler(Events.EPOCH_COMPLETED, handler=dict(model=model))
     trainer.run(trainloader, max_epochs=num_epochs)
