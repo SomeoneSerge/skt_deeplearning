@@ -8,6 +8,8 @@ import tensorboardX
 import pprint
 import collections
 
+
+from sktdl_cells.iou import calc_iou as calc_iou_vanilla
 from sktdl_cells import trainable_params as param_selection
 from sktdl_cells.data_cells import CellsSegmentation, CellsTransform
 from sktdl_cells.trainloop_segmentation import train
@@ -42,14 +44,24 @@ def get_trainable_params(net):
     return (p for n, p in get_trainable_named_params(net))
 
 @ex.capture
-def make_loss(loss):
+def make_loss(loss_impl):
     LOSSES = dict(
             rogertrullo=lambda yhat, y: rogetrullo_diceloss(yhat, y.float()),
             issamlaradji=lambda yhat, y: issamlaradji_diceloss(yhat, y.float()),
             pytorch_unet=lambda yhat, y: 1. - pytorch_unet_dicecoeff(yhat, y.float()),
             # kevinzakka=test_kevinzakka,
             )
-    return LOSSES[loss]
+    return LOSSES[loss_impl]
+
+@ex.capture
+def make_iou(iou_impl):
+    IMPL = dict(
+            vanilla=lambda y_pred, y: (
+                calc_iou_vanilla(
+                    y_pred.to('cpu').numpy(),
+                    y.to('cpu').numpy())),
+            custom=lambda y_pred, y: float((y_pred > 0).sum())/float((y > 0).sum())
+            )
 
 @ex.capture
 def make_model(weights_path, device, trainable_params, random_init):
@@ -104,9 +116,10 @@ def cfg0():
             translate=(1., 1.),
             scale=(.9, 1.1),
             crop_size=(64, 64))
-    random_init=True
-    epochs_per_checkpoint=2
-    loss='pytorch_unet'
+    random_init = True
+    epochs_per_checkpoint = 2
+    loss_impl = 'pytorch_unet'
+    iou_impl = 'vanilla'
 
 @ex.command(unobserved=True)
 def print_parameternames():
@@ -128,6 +141,7 @@ def main(device, num_epochs, epochs_per_checkpoint, _run):
     optimizer = make_optimizer(model)
     device = torch.device(device)
     loss = make_loss()
+    iou = make_iou()
     EXPERIMENT_DIR = os.path.join(RUNS_DIR, str(_run._id))
     tensorboard = tensorboardX.SummaryWriter(EXPERIMENT_DIR)
     def log(subset, name, value, it):
@@ -137,6 +151,7 @@ def main(device, num_epochs, epochs_per_checkpoint, _run):
           dataloader_val,
           optimizer,
           loss,
+          iou,
           device,
           num_epochs,
           log=log,

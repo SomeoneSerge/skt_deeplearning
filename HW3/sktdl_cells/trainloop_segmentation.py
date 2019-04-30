@@ -8,8 +8,6 @@ from ignite.metrics.metric import Metric
 from ignite.metrics import MetricsLambda
 from ignite.handlers import ModelCheckpoint
 
-from sktdl_cells.iou import calc_iou
-
 import pprint
 
 
@@ -21,12 +19,13 @@ import pprint
 
 
 class IoU(Metric):
+    def __init__(self, impl):
+        super(IoU, self).__init__()
+        self.iou_impl = impl
     def update(self, output):
         cpu = torch.device('cpu')
         y_pred, y = output
-        y_pred, y = y_pred.clone(), y.clone() # before .to(cpu), just to make sure
-        y_pred, y = y_pred.to(cpu).numpy(), y.to(cpu).numpy()
-        self._iou = calc_iou(ground_truth=y, prediction=y_pred)
+        self._iou = self.iou_impl(y_pred, y)
     def compute(self):
         return self._iou
     def reset(self):
@@ -39,6 +38,7 @@ def train(
         valloader,
         optimizer,
         loss,
+        iou,
         device,
         num_epochs,
         log,
@@ -61,7 +61,7 @@ def train(
     evaluator = create_supervised_evaluator(
             model,
             metrics=dict(
-                iou=IoU()
+                iou=IoU(iou)
                 ),
             device=device)
     @trainer.on(Events.EPOCH_COMPLETED)
