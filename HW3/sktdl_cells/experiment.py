@@ -129,13 +129,13 @@ def main(device, num_epochs, epochs_per_checkpoint, assume_negated_dice, _run):
     def log_trainloss(trainloss, iteration):
         tensorboard.add_scalar('train.loss', trainloss, iteration)
     train(model,
-            dataloader_train,
-            dataloader_val,
-            optimizer,
-            loss,
-            device,
-            num_epochs,
-            log_trainloss=log_trainloss,
-            log_iou=log_iou,
-            weights_dir=EXPERIMENT_DIR,
-            epochs_per_checkpoint=epochs_per_checkpoint)
+          dataloader_train,
+          dataloader_val,
+          optimizer,
+          loss,
+          device,
+          num_epochs,
+          log_trainloss=log_trainloss,
+          log_iou=log_iou,
+          weights_dir=EXPERIMENT_DIR,
+          epochs_per_checkpoint=epochs_per_checkpoint)

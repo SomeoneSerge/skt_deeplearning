@@ -46,7 +46,7 @@ def train(
         weights_dir,
         epochs_per_checkpoint):
     def update(engine, batch):
-        print('udpate()')
+        print('update()')
         optimizer.zero_grad()
         x, y = batch
         yhat = model(x)
@@ -66,7 +66,7 @@ def train(
                 ),
             device=device)
     @trainer.on(Events.EPOCH_COMPLETED)
-    def _on_epoch(trainer):
+    def _on_epoch(evaluator):
         evaluator.run(valloader)
         log_iou(evaluator.state.metrics['iou'], trainer.state.epoch)
     @trainer.on(Events.ITERATION_COMPLETED)
