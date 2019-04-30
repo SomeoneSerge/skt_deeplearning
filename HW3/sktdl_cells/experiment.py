@@ -93,6 +93,7 @@ def cfg0():
             scale=(.9, 1.1),
             crop_size=(64, 64))
     random_init=True
+    epochs_per_checkpoint=2
 
 @ex.command(unobserved=True)
 def print_parameternames():
@@ -107,7 +108,7 @@ def print_parameternames():
 
 
 @ex.automain
-def main(device, num_epochs, _run):
+def main(device, num_epochs, epochs_per_checkpoint, _run):
     model = make_model()
     dataloader_train = make_data('train')
     dataloader_val = make_data('val')
@@ -115,7 +116,8 @@ def main(device, num_epochs, _run):
     # loss = lambda yhat, y: neg_dice_coeff(y, yhat)
     loss = lambda yhat, y: 1. - dice_loss.dice_coeff(yhat, y.float())
     device = torch.device(device)
-    tensorboard = tensorboardX.SummaryWriter(os.path.join(RUNS_DIR, str(_run._id)))
+    EXPERIMENT_DIR = os.path.join(RUNS_DIR, str(_run._id))
+    tensorboard = tensorboardX.SummaryWriter(EXPERIMENT_DIR)
     def log_iou(iou, epoch):
         tensorboard.add_scalar('val.iou', iou, epoch)
     def log_trainloss(trainloss, iteration):
@@ -128,4 +130,6 @@ def main(device, num_epochs, _run):
             device,
             num_epochs,
             log_trainloss=log_trainloss,
-            log_iou=log_iou)
+            log_iou=log_iou,
+            weights_dir=EXPERIMENT_DIR,
+            epochs_per_checkpoint=epochs_per_checkpoint)
