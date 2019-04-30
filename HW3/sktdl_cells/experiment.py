@@ -127,6 +127,7 @@ def cfg0():
     epochs_per_checkpoint = 2
     loss_impl = 'pytorch_unet'
     iou_impl = 'vanilla'
+    threshold=.55
 
 @ex.command(unobserved=True)
 def print_parameternames():
