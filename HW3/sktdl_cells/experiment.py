@@ -1,4 +1,5 @@
 import torch
+import numpy as np
 from torch.optim import Adam
 from torch.utils.data import DataLoader
 import sacred
@@ -23,12 +24,18 @@ ex.observers.append(FileStorageObserver.create(RUNS_DIR))
 
 
 @ex.capture
-def make_model(weights_path, device, trainable_params):
+def make_model(weights_path, device, trainable_params, random_init):
     net = UNet(3, 1)
     state = torch.load(weights_path, map_location='cpu')
     net.load_state_dict(state)
     for name, p in net.named_parameters():
-        p.requires_grad_(name in trainable_params)
+        trainable = name in trainable_params
+        p.requires_grad_(trainable)
+        if trainable and random_init:
+            # TODO: different init for translations and rotations
+            stddev = np.prod(p.shape)
+            stddev = np.sqrt(stddev)
+            p.normal_(std=1./stddev)
     net.to(torch.device(device))
     return net
 
@@ -71,6 +78,7 @@ def cfg0():
             translate=(1., 1.),
             scale=(.9, 1.1),
             crop_size=(64, 64))
+    random_init=True
 
 @ex.command(unobserved=True)
 def print_parameternames():
