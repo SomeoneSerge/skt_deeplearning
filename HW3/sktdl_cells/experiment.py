@@ -13,7 +13,8 @@ from sktdl_cells.data_cells import CellsSegmentation, CellsTransform
 from sktdl_cells.trainloop_segmentation import train
 # from sktdl_cells.losses import dice_loss as neg_dice_coeff
 # from pytorch_unet import dice_loss
-from sktdl_cells.diceloss_rogertrullo import dice_loss
+# from sktdl_cells.diceloss_rogertrullo import dice_loss
+from sktdl_cells.diceloss_issamlaradji import dice_loss
 from pytorch_unet.unet.unet_model import UNet
 import os
 
@@ -117,7 +118,7 @@ def main(device, num_epochs, epochs_per_checkpoint, assume_negated_dice, _run):
     optimizer = make_optimizer(model)
     # loss = lambda yhat, y: neg_dice_coeff(y, yhat)
     if assume_negated_dice:
-        loss = lambda yhat, y: -dice_loss(yhat, y.float())
+        loss = lambda yhat, y: 1.-dice_loss(yhat, y.float())
     else:
         loss = lambda yhat, y: dice_loss(yhat, y.float())
     device = torch.device(device)
