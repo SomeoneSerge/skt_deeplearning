@@ -94,6 +94,7 @@ def cfg0():
             crop_size=(64, 64))
     random_init=True
     epochs_per_checkpoint=2
+    assume_negated_dice=False
 
 @ex.command(unobserved=True)
 def print_parameternames():
@@ -114,7 +115,10 @@ def main(device, num_epochs, epochs_per_checkpoint, _run):
     dataloader_val = make_data('val')
     optimizer = make_optimizer(model)
     # loss = lambda yhat, y: neg_dice_coeff(y, yhat)
-    loss = lambda yhat, y: 1. - dice_loss.dice_coeff(yhat, y.float())
+    if assume_negated_dice:
+        loss = dice_loss.dice_coeff
+    else:
+        loss = lambda yhat, y: 1. - dice_loss.dice_coeff(yhat, y.float())
     device = torch.device(device)
     EXPERIMENT_DIR = os.path.join(RUNS_DIR, str(_run._id))
     tensorboard = tensorboardX.SummaryWriter(EXPERIMENT_DIR)
