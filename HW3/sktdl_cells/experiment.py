@@ -62,6 +62,7 @@ def make_iou(iou_impl):
                     y.to('cpu').numpy())),
             custom=lambda y_pred, y: float((y_pred > 0)*(y > 0).sum())/float(((y > 0) | (y_pred > 0)).sum())
             )
+    return IMPL[iou_impl]
 
 @ex.capture
 def make_model(weights_path, device, trainable_params, random_init):
