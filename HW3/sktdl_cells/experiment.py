@@ -114,7 +114,7 @@ def print_parameternames():
 def main(device, num_epochs, epochs_per_checkpoint, assume_negated_dice, _run):
     model = make_model()
     dataloader_train = make_data('train')
-    dataloader_val = make_data('val')
+    dataloader_val = make_data('test')
     optimizer = make_optimizer(model)
     # loss = lambda yhat, y: neg_dice_coeff(y, yhat)
     if assume_negated_dice:
