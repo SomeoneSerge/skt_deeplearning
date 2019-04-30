@@ -67,7 +67,7 @@ def make_iou(iou_impl):
                 / float(
                     ((y > 0) | (torch.sigmoid(y_pred) > .5))
                     .sum())
-            )
+            ))
     return IMPL[iou_impl]
 
 @ex.capture
