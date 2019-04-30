@@ -1,7 +1,7 @@
 .PHONY: pull data install_self
 
 
-all: pull BBBC018_v1_images-fixed .requirements
+all: pull .cells.dataset .requirements install_self
 
 
 .requirements: requirements.txt
