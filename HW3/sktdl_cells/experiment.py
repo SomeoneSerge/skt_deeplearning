@@ -116,7 +116,7 @@ def main(device, num_epochs, epochs_per_checkpoint, assume_negated_dice, _run):
     optimizer = make_optimizer(model)
     # loss = lambda yhat, y: neg_dice_coeff(y, yhat)
     if assume_negated_dice:
-        loss = dice_loss.dice_coeff
+        loss = lambda yhat, y: dice_loss.dice_coeff(yhat, y.float())
     else:
         loss = lambda yhat, y: 1. - dice_loss.dice_coeff(yhat, y.float())
     device = torch.device(device)
