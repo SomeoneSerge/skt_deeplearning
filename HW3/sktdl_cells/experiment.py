@@ -11,10 +11,10 @@ import collections
 from sktdl_cells import trainable_params as param_selection
 from sktdl_cells.data_cells import CellsSegmentation, CellsTransform
 from sktdl_cells.trainloop_segmentation import train
-# from sktdl_cells.losses import dice_loss as neg_dice_coeff
-# from pytorch_unet import dice_loss
-# from sktdl_cells.diceloss_rogertrullo import dice_loss
-from sktdl_cells.diceloss_issamlaradji import dice_loss
+from sktdl_cells.losses import dice_loss as kevinzakka_diceloss
+from pytorch_unet.dice_loss import dice_coeff as pytorch_unet_dicecoeff
+from sktdl_cells.diceloss_rogertrullo import dice_loss as rogertrullo_diceloss
+from sktdl_cells.diceloss_issamlaradji import dice_loss as issamlaradji_diceloss
 from pytorch_unet.unet.unet_model import UNet
 import os
 
@@ -40,6 +40,16 @@ def get_trainable_named_params(net, trainable_params):
 
 def get_trainable_params(net):
     return (p for n, p in get_trainable_named_params(net))
+
+@ex.capture
+def make_loss(loss):
+    LOSSES = dict(
+            rogertrullo=lambda yhat, y: rogetrullo_diceloss(yhat, y),
+            issamlaradji=lambda yhat, y: issamlaradji_diceloss(yhat, y),
+            pytorch_unet=lambda yhat, y: 1. - pytorch_unet_dicecoeff(yhat, y.float()),
+            # kevinzakka=test_kevinzakka,
+            )
+    return LOSSES[loss]
 
 @ex.capture
 def make_model(weights_path, device, trainable_params, random_init):
@@ -96,7 +106,7 @@ def cfg0():
             crop_size=(64, 64))
     random_init=True
     epochs_per_checkpoint=2
-    assume_negated_dice=False
+    loss='pytorch_unet'
 
 @ex.command(unobserved=True)
 def print_parameternames():
@@ -111,17 +121,13 @@ def print_parameternames():
 
 
 @ex.automain
-def main(device, num_epochs, epochs_per_checkpoint, assume_negated_dice, _run):
+def main(device, num_epochs, epochs_per_checkpoint, _run):
     model = make_model()
     dataloader_train = make_data('train')
     dataloader_val = make_data('val')
     optimizer = make_optimizer(model)
-    # loss = lambda yhat, y: neg_dice_coeff(y, yhat)
-    if assume_negated_dice:
-        loss = lambda yhat, y: 1.-dice_loss(yhat, y.float())
-    else:
-        loss = lambda yhat, y: dice_loss(yhat, y.float())
     device = torch.device(device)
+    loss = make_loss()
     EXPERIMENT_DIR = os.path.join(RUNS_DIR, str(_run._id))
     tensorboard = tensorboardX.SummaryWriter(EXPERIMENT_DIR)
     def log(subset, name, value, it):
