@@ -58,7 +58,7 @@ def make_iou(iou_impl):
     IMPL = dict(
             vanilla=lambda y_pred, y: (
                 calc_iou_vanilla(
-                    y_pred.to('cpu').numpy(),
+                    (torch.sigmoid(y_pred) > .5).to('cpu').numpy(),
                     y.to('cpu').numpy())),
             custom=lambda y_pred, y: (
                 float(
