@@ -124,10 +124,8 @@ def main(device, num_epochs, epochs_per_checkpoint, assume_negated_dice, _run):
     device = torch.device(device)
     EXPERIMENT_DIR = os.path.join(RUNS_DIR, str(_run._id))
     tensorboard = tensorboardX.SummaryWriter(EXPERIMENT_DIR)
-    def log_iou(iou, epoch):
-        tensorboard.add_scalar('val.iou', iou, epoch)
-    def log_trainloss(trainloss, iteration):
-        tensorboard.add_scalar('train.loss', trainloss, iteration)
+    def log(subset, name, value, it):
+        tensorboard.add_scalar(f'{subset}.{name}', value, it)
     train(model,
           dataloader_train,
           dataloader_val,
@@ -135,7 +133,6 @@ def main(device, num_epochs, epochs_per_checkpoint, assume_negated_dice, _run):
           loss,
           device,
           num_epochs,
-          log_trainloss=log_trainloss,
-          log_iou=log_iou,
+          log=log,
           weights_dir=EXPERIMENT_DIR,
           epochs_per_checkpoint=epochs_per_checkpoint)

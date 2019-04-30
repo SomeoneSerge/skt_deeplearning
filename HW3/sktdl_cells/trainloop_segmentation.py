@@ -41,8 +41,7 @@ def train(
         loss,
         device,
         num_epochs,
-        log_trainloss,
-        log_iou,
+        log,
         weights_dir,
         epochs_per_checkpoint):
     def update(engine, batch):
@@ -68,10 +67,12 @@ def train(
     @trainer.on(Events.EPOCH_COMPLETED)
     def _on_epoch(trainer):
         evaluator.run(valloader)
-        log_iou(evaluator.state.metrics['iou'], trainer.state.epoch)
+        log('val', 'iou', evaluator.state.metrics['iou'], trainer.state.epoch)
+        evaluator.run(trainloader)
+        log('train', 'iou', evaluator.state.metrics['iou'], trainer.state.epoch)
     @trainer.on(Events.ITERATION_COMPLETED)
     def _on_iter(trainer):
-        log_trainloss(trainer.state.output, trainer.state.iteration)
+        log('train', 'loss', trainer.state.output, trainer.state.iteration)
     checkpointer = ModelCheckpoint(
             weights_dir,
             'weights',
