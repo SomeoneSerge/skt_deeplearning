@@ -35,7 +35,7 @@ def make_model(weights_path, device, trainable_params, random_init):
             # TODO: different init for translations and rotations
             stddev = np.prod(p.shape)
             stddev = np.sqrt(stddev)
-            p.normal_(std=1./stddev)
+            p.data.normal_(std=1./stddev)
     net.to(torch.device(device))
     return net
 
