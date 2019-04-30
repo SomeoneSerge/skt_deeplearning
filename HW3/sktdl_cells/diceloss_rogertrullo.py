@@ -3,7 +3,7 @@
 
 import numpy as np
 import torch
-import torch as F
+import torch.nn.functional as F
 
 
 def dice_loss(input, target):
