@@ -58,14 +58,14 @@ def make_iou(iou_impl):
     IMPL = dict(
             vanilla=lambda y_pred, y: (
                 calc_iou_vanilla(
-                    (torch.sigmoid(y_pred) > .5).to('cpu').numpy(),
+                    (y_pred > .1).to('cpu').numpy(),
                     y.to('cpu').numpy())),
             custom=lambda y_pred, y: (
                 float(
-                    ((torch.sigmoid(y_pred) > .5) * (y > 0))
+                    ((y_pred > .1) * (y > 0))
                     .sum())
                 / float(
-                    ((y > 0) | (torch.sigmoid(y_pred) > .5))
+                    ((y > 0) | (y_pred > .1))
                     .sum())
             ))
     return IMPL[iou_impl]
