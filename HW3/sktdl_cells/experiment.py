@@ -6,7 +6,9 @@ import sacred
 from sacred.observers import FileStorageObserver
 import tensorboardX
 import pprint
+import collections
 
+from sktdl_cells import trainable_params as param_selection
 from sktdl_cells.data_cells import CellsSegmentation, CellsTransform
 from sktdl_cells.trainloop_segmentation import train
 # from sktdl_cells.losses import dice_loss as neg_dice_coeff
@@ -24,18 +26,33 @@ ex.observers.append(FileStorageObserver.create(RUNS_DIR))
 
 
 @ex.capture
+def get_trainable_named_params(net, trainable_params):
+    METHODS = dict(
+            fixed=param_selection.fixed,
+            headtail=param_selection.headtail
+            )
+    paramsets = (METHODS[tp[0]](*tp[1:])(net) for tp in trainable_params)
+    params = ((n, p) for pset in paramsets for n, p in pset)
+    params = collections.OrderedDict(params)
+    return params.items()
+
+def get_trainable_params(net):
+    return (p for n, p in get_trainable_named_params(net))
+
+@ex.capture
 def make_model(weights_path, device, trainable_params, random_init):
     net = UNet(3, 1)
     state = torch.load(weights_path, map_location='cpu')
     net.load_state_dict(state)
-    for name, p in net.named_parameters():
-        trainable = name in trainable_params
-        p.requires_grad_(trainable)
-        if trainable and random_init:
+    for p in net.parameters():
+        p.requires_grad_(False)
+    for p in get_trainable_params(net):
+        if random_init:
             # TODO: different init for translations and rotations
             stddev = np.prod(p.shape)
             stddev = np.sqrt(stddev)
             p.data.normal_(std=1./stddev)
+        p.requires_grad_(True)
     net.to(torch.device(device))
     return net
 
@@ -52,8 +69,8 @@ def make_data(subset, batch_size, clone_times, train_transform):
             batch_size=batch_size)
 
 @ex.capture
-def make_optimizer(model, trainable_params, adam_params):
-    params = tuple([p for n, p in model.named_parameters() if n in trainable_params])
+def make_optimizer(model, adam_params):
+    params = get_trainable_params(model)
     optimizer = Adam(params, **adam_params)
     return optimizer
 
@@ -65,10 +82,7 @@ def cfg0():
     is_deconv = False
     num_input_channels = 11
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    trainable_params = tuple([
-        'outc.conv.weight',
-        'outc.conv.bias'
-        ]) # TODO: check if these params exist
+    trainable_params = [('headtail', 2, 2)]
     adam_params = dict(
             lr=1e-3,
             betas=(.9, .99))
