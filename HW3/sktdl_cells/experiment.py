@@ -60,7 +60,7 @@ def make_iou(iou_impl):
                 calc_iou_vanilla(
                     y_pred.to('cpu').numpy(),
                     y.to('cpu').numpy())),
-            custom=lambda y_pred, y: float((y_pred > 0).sum())/float((y > 0).sum())
+            custom=lambda y_pred, y: float((y_pred > 0)*(y > 0).sum())/float(((y > 0) | (y_pred > 0)).sum())
             )
 
 @ex.capture
