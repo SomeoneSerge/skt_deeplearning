@@ -68,8 +68,6 @@ def train(
     def _on_epoch(trainer):
         evaluator.run(valloader)
         log('val', 'iou', evaluator.state.metrics['iou'], trainer.state.epoch)
-        evaluator.run(trainloader)
-        log('train', 'iou', evaluator.state.metrics['iou'], trainer.state.epoch)
     @trainer.on(Events.ITERATION_COMPLETED)
     def _on_iter(trainer):
         log('train', 'loss', trainer.state.output, trainer.state.iteration)
