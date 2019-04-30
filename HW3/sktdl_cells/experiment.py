@@ -62,7 +62,7 @@ def make_iou(iou_impl):
                     y.to('cpu').numpy())),
             custom=lambda y_pred, y: (
                 float(
-                    (torch.sigmoid(y_pred) > .5) * (y > 0)
+                    ((torch.sigmoid(y_pred) > .5) * (y > 0))
                     .sum())
                 / float(
                     ((y > 0) | (torch.sigmoid(y_pred) > .5))
