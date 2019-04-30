@@ -1,5 +1,10 @@
 # Source: https://github.com/rogertrullo/pytorch/blob/rogertrullo-dice_loss/torch/nn/functional.py#L708
 
+
+import numpy as np
+import torch
+
+
 def dice_loss(input, target):
     """
     input is a torch variable of size BatchxnclassesxHxW representing log probabilities for each class
