@@ -160,8 +160,8 @@ def segment_dir(path, batch_size, device):
     with torch.no_grad():
         for filepath in cells:
             X = transforms.functional.to_tensor(Image.open(filepath).convert('RGB'))
+            X = X.to(device)
             X = X.unsqueeze(0)
-            X.to(device)
             y = model(X).squeeze(0).squeeze(0).to(cpu).numpy()
             y = (y * 255).astype(np.uint8)
             y = Image.fromarray(y)
