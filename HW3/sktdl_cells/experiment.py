@@ -7,6 +7,10 @@ from sacred.observers import FileStorageObserver
 import tensorboardX
 import pprint
 import collections
+import re
+
+from torchvision import transforms
+from PIL import Image
 
 
 from sktdl_cells.iou import calc_iou as calc_iou_vanilla
@@ -139,6 +143,30 @@ def print_parameternames():
                     'trainable' if p.requires_grad else 'frozen')
                 for parname, p in net.named_parameters()))
     print(output)
+
+@ex.command(unobserved=True)
+def segment_dir(path, batch_size, device):
+    IMAGE_EXT = re.compile(r'^.*(?<!segmented)(\.jpg|\.png|\.bmp)$')
+    device = torch.device(device)
+    cpu = torch.device('cpu')
+    model = make_model()
+    model.eval()
+    cells = [
+            os.path.join(dirname, filename)
+            for dirname, _, filenames in os.walk(path)
+            for filename in filenames
+            if IMAGE_EXT.match(filename)
+            ]
+    with torch.no_grad():
+        for filepath in cells:
+            X = transforms.functional.to_tensor(Image.open(filepath).convert('RGB'))
+            X = X.unsqueeze(0)
+            X.to(device)
+            y = model(X).squeeze(0).squeeze(0).to(cpu).numpy()
+            y = (y * 255).astype(np.uint8)
+            y = Image.fromarray(y)
+            y.save(filepath + '.segmented.bmp')
+
 
 
 @ex.automain
