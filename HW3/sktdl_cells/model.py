@@ -13,4 +13,4 @@ class UnetAsExtractor(nn.Module):
             out = self.inconv(out)
             out = self.unet(out, sigmoid=False)
             out = self.outconv(out)
-            return torch.sigmiod(out)
+            return torch.sigmoid(out)
