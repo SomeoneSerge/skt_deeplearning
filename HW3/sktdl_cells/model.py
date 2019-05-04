@@ -1,6 +1,6 @@
 import torch
 from torch import nn
-from pytorch_unet.unet import Unet
+from pytorch_unet.unet import UNet
 
 class UnetAsExtractor(nn.Module):
     def __init__(self):
