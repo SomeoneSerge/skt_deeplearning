@@ -1,3 +1,6 @@
+import torch
+from torch import nn
+
 class UnetAsExtractor(nn.Module):
     def __init__(self):
         super(UnetAsExtractor, self).__init__()
