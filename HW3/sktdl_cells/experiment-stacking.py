@@ -55,7 +55,6 @@ def make_loss(loss_impl):
             rogertrullo=lambda yhat, y: rogetrullo_diceloss(yhat, y.float()),
             issamlaradji=lambda yhat, y: issamlaradji_diceloss(yhat, y.float()),
             pytorch_unet=lambda yhat, y: 1. - pytorch_unet_dicecoeff(yhat, y.float()),
-            # kevinzakka=test_kevinzakka,
             )
     return LOSSES[loss_impl]
 
@@ -77,10 +76,11 @@ def make_iou(iou_impl, threshold):
     return IMPL[iou_impl]
 
 @ex.capture
-def make_model(unet_weights, full_weights, device, trainable_params):
+def make_model(unet_weights, full_weights, device, trainable_params, random_init):
     net = UnetAsExtractor()
-    print('Initializing weights randomly')
-    net.apply(weight_init)
+    net.apply(weights_init) # in case all weight paths are None
+    net_random = UnetAsExtractor()
+    net_random.apply(weight_init) # so we can reset trainable params later
     if unet_weights is not None:
         print(f'Loading {unet_weights}')
         state = torch.load(unet_weights, map_location='cpu')
@@ -91,7 +91,9 @@ def make_model(unet_weights, full_weights, device, trainable_params):
         net.load_state_dict(state)
     for p in net.parameters():
         p.requires_grad_(False)
-    for p in get_trainable_params(net):
+    for p, p_rnd in zip(get_trainable_params(net), get_trainable_params(net_random)):
+        if random_init:
+            p.data.copy_(p_rnd.data)
         p.requires_grad_(True)
     net.to(torch.device(device))
     return net
@@ -133,9 +135,10 @@ def cfg0():
             scale=(.25, 1.1),
             crop_size=(100, 100))
     epochs_per_checkpoint = 2
-    loss_impl = 'pytorch_unet'
+    loss_impl = 'issamlaradji'
     iou_impl = 'vanilla'
-    threshold=.55
+    threshold = .5
+    random_init = True
 
 @ex.command(unobserved=True)
 def print_parameternames():
