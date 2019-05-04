@@ -11,6 +11,6 @@ class UnetAsExtractor(nn.Module):
     def forward(self, input):
             out = input
             out = self.inconv(out)
-            out = self.unet(out)
+            out = self.unet(out, sigmoid=False)
             out = self.outconv(out)
             return out

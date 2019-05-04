@@ -19,7 +19,7 @@ class UNet(nn.Module):
         self.up4 = up(128, 64)
         self.outc = outconv(64, n_classes)
 
-    def forward(self, x):
+    def forward(self, x, sigmoid=True):
         x1 = self.inc(x)
         x2 = self.down1(x1)
         x3 = self.down2(x2)
@@ -30,4 +30,6 @@ class UNet(nn.Module):
         x = self.up3(x, x2)
         x = self.up4(x, x1)
         x = self.outc(x)
-        return torch.sigmoid(x)
+        if sigmoid:
+            return torch.sigmoid(x)
+        return x
