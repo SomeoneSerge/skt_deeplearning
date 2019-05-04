@@ -6,7 +6,6 @@ import tensorboardX
 import sacred
 from sacred.observers import FileStorageObserver
 
-import logging
 import pprint
 import collections
 import re
@@ -32,13 +31,8 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 RUNS_DIR = os.path.join(MODULE_DIR, 'unet_as_extractor_runs')
 
 
-
-
 ex = sacred.Experiment('sktdl_cells')
 ex.observers.append(FileStorageObserver.create(RUNS_DIR))
-
-def get_logger():
-    return logging.getLogger('unet_as_extractor')
 
 
 @ex.capture
@@ -85,15 +79,14 @@ def make_iou(iou_impl, threshold):
 @ex.capture
 def make_model(unet_weights, full_weights, device, trainable_params):
     net = UnetAsExtractor()
-    logger = get_logger()
-    logger.info('Initializing weights randomly')
+    print('Initializing weights randomly')
     net.apply(weight_init)
     if unet_weights is not None:
-        logger.info(f'Loading {unet_weights}')
+        print(f'Loading {unet_weights}')
         state = torch.load(unet_weights, map_location='cpu')
         net.unet.load_state_dict(state)
     if full_weights is not None:
-        logger.info(f'Loading {unet_weights}')
+        print(f'Loading {unet_weights}')
         full_state = torch.load(full_weights, map_location='cpu')
         net.load_state_dict(state)
     for p in net.parameters():
