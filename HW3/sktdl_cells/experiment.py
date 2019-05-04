@@ -149,7 +149,7 @@ def segment_dir(path, batch_size, device):
     IMAGE_EXT = re.compile(r'^.*(?<!segmented)(\.jpg|\.png|\.bmp)$')
     device = torch.device(device)
     cpu = torch.device('cpu')
-    model = make_model()
+    model = make_model(trainable_params=[], random_init=False)
     model.eval()
     cells = [
             os.path.join(dirname, filename)
