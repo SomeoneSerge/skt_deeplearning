@@ -132,8 +132,8 @@ def cfg0():
     train_transform = dict(
             degrees=180.,
             translate=(0.5, 0.5),
-            scale=(.25, 3.0),
-            crop_size=(100, 100))
+            scale=(.25, 1.75),
+            crop_size=(128, 128))
     epochs_per_checkpoint = 2
     loss_impl = 'issamlaradji'
     iou_impl = 'vanilla'
