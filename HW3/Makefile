@@ -25,3 +25,6 @@ cells.zip:
 
 .cells.dataset: cells.zip
 	unzip cells.zip 2>&1 > $@
+
+sktdl_utils/weight_init.py:
+	wget https://gist.githubusercontent.com/jeasinema/ed9236ce743c8efaf30fa2ff732749f5/raw/d837f5c96a727d1b3292a3eedf06c19aca6c1a8a/weight_init.py -O $@
