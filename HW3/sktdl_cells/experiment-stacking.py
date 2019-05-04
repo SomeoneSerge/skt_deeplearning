@@ -22,6 +22,7 @@ from sktdl_cells.trainloop_segmentation import train
 from sktdl_cells.losses import dice_loss as kevinzakka_diceloss
 from sktdl_cells.diceloss_rogertrullo import dice_loss as rogertrullo_diceloss
 from sktdl_cells.diceloss_issamlaradji import dice_loss as issamlaradji_diceloss
+from sktdl_cells.model import UnetAsExtractor
 from pytorch_unet.unet.unet_model import UNet
 from pytorch_unet.dice_loss import dice_coeff as pytorch_unet_dicecoeff
 
