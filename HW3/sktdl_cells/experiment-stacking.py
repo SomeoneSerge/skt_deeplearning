@@ -78,7 +78,7 @@ def make_iou(iou_impl, threshold):
 @ex.capture
 def make_model(unet_weights, full_weights, device, trainable_params, random_init):
     net = UnetAsExtractor()
-    net.apply(weights_init) # in case all weight paths are None
+    net.apply(weight_init) # in case all weight paths are None
     net_random = UnetAsExtractor()
     net_random.apply(weight_init) # so we can reset trainable params later
     if unet_weights is not None:
