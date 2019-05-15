@@ -9,7 +9,7 @@ all: pull .cells.dataset .requirements install_self
 	cp requirements.txt .requirements
 
 install_self:
-	pip install -U .
+	python setup.py develop
 
 pull:
 	git pull
