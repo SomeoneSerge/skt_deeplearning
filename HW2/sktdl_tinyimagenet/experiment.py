@@ -66,7 +66,7 @@ def config0():
     log_norms = False
     log_gradnorms = False
     num_workers = 1
-    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    device = 'cuda' if torch.cuda.is_available() else 'cpu'
     print_architecture = False
     evaluate_on = ('val',)
     validate_on = tuple()
@@ -128,6 +128,7 @@ def get_dataloader(
 
 @ex.capture
 def _evaluate(model, subset, device):
+    device = torch.device(device) if isinstance(device, str) else device
     dataset = get_dataloader(subset)
     correct, total = 0, 0
     model.eval()
@@ -171,6 +172,7 @@ def train(
         print_architecture,
         evaluate_on,
         validate_on):
+    device = torch.device(device) if isinstance(device, str) else device
     print('Using device {device}'.format(device=device))
     dataset = get_dataloader('train')
     net = get_network()
@@ -241,9 +243,10 @@ def train(
         pbar.update(0)
     finally:
         filename = 'tmp_weights.pt'
-        state = net.to(torch.device('cpu')).state_dict()
+        cpu = torch.device('cpu')
+        state = net.to(cpu).state_dict()
         torch.save(state, filename)
-        net.load_state_dict(torch.load(filename)) # to make sure shapes really coincide
+        net.load_state_dict(torch.load(filename, map_location=cpu)) # to make sure shapes really coincide
         _run.add_artifact(filename, name='weights')
         for subset in validate_on:
             evaluate(net, subset, it)
@@ -252,7 +255,9 @@ def register_cmd_evaluate():
     @ex.command(unobserved=True)
     def evaluate(weights: str, subset: str, device):
         net = get_network()
-        net.load_state_dict(torch.load(weights))
+        device = torch.device(device) if isinstance(device, str) else device
+        cpu = torch.device('cpu')
+        net.load_state_dict(torch.load(weights, map_location=cpu))
         net.to(device)
         acc = _evaluate(net, subset=subset)
         print('{}.accuracy: {:.5f}'.format(subset, acc))
