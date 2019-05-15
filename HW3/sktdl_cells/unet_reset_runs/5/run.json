@@ -1,0 +1,112 @@
+{
+  "artifacts": [],
+  "command": "main",
+  "experiment": {
+    "base_dir": "/root/skt_deeplearning/HW3/sktdl_cells",
+    "dependencies": [
+      "numpy==1.16.3",
+      "Pillow==6.0.0",
+      "sacred==0.7.4-onurgu",
+      "sktdl-hw3==0.0.0",
+      "tensorboardX==1.6",
+      "torch==1.1.0",
+      "torchvision==0.2.2.post3"
+    ],
+    "mainfile": "unet-reset.py",
+    "name": "sktdl_cells_unet_reset",
+    "repositories": [],
+    "sources": [
+      [
+        "data_cells.py",
+        "_sources/data_cells_58f2896900fc7431beb2eab4bf102981.py"
+      ],
+      [
+        "diceloss_issamlaradji.py",
+        "_sources/diceloss_issamlaradji_c62939740b0d328a6551452c1faa89fa.py"
+      ],
+      [
+        "diceloss_rogertrullo.py",
+        "_sources/diceloss_rogertrullo_bb74899206426761d6db28be2f392f9c.py"
+      ],
+      [
+        "iou.py",
+        "_sources/iou_c9394cd9748290c2621c1bcbf948d0c0.py"
+      ],
+      [
+        "losses.py",
+        "_sources/losses_c96e7681c80dcb3dcefcf7c378ed53e9.py"
+      ],
+      [
+        "trainable_params.py",
+        "_sources/trainable_params_ba0e5eeda99c0a3def9677bfe8d4afb0.py"
+      ],
+      [
+        "trainloop_segmentation.py",
+        "_sources/trainloop_segmentation_25f7f625f2978c26c78be8c03a64a03d.py"
+      ],
+      [
+        "unet-reset.py",
+        "_sources/unet-reset_909b73e8bfd54c46f64e5897efbf30a4.py"
+      ]
+    ]
+  },
+  "heartbeat": "2019-05-15T13:55:41.320975",
+  "host": {
+    "ENV": {},
+    "cpu": "Intel(R) Xeon(R) CPU @ 2.00GHz",
+    "gpus": {
+      "driver_version": "410.78",
+      "gpus": [
+        {
+          "model": "Tesla V100-SXM2-16GB",
+          "persistence_mode": false,
+          "total_memory": 16130
+        }
+      ]
+    },
+    "hostname": "09671cf9d91b",
+    "os": [
+      "Linux",
+      "Linux-4.15.0-1029-gcp-x86_64-with-debian-stretch-sid"
+    ],
+    "python_version": "3.7.1"
+  },
+  "meta": {
+    "command": "main",
+    "options": {
+      "--beat_interval": null,
+      "--capture": null,
+      "--comment": null,
+      "--debug": false,
+      "--enforce_clean": false,
+      "--file_storage": null,
+      "--force": false,
+      "--help": false,
+      "--loglevel": null,
+      "--mongo_db": null,
+      "--name": null,
+      "--pdb": false,
+      "--print_config": false,
+      "--priority": null,
+      "--queue": false,
+      "--sql": null,
+      "--tiny_db": null,
+      "--unobserved": false,
+      "COMMAND": null,
+      "UPDATE": [
+        "num_epochs=50",
+        "reset_params=([\"none\"],)",
+        "adam_params.betas=(.9, .99)",
+        "train_transform.crop_size=(150,150)",
+        "train_transform.translate=(.5, .5)"
+      ],
+      "help": false,
+      "with": true
+    }
+  },
+  "resources": [],
+  "result": null,
+  "start_time": "2019-05-15T13:27:22.889999",
+  "status": "INTERRUPTED",
+  "stop_time": "2019-05-15T13:55:41.322585"
+}
