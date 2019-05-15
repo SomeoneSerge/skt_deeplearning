@@ -143,7 +143,11 @@ def cfg0():
             degrees=180.,
             translate=(1., 1.),
             scale=(.9, 1.1),
-            crop_size=(64, 64))
+            crop_size=(64, 64),
+            brightness=0.,
+            contrast=0.,
+            saturation=0.,
+            hue=0.)
     epochs_per_checkpoint = 2
     loss_impl = 'issamlaradji'
     iou_impl = 'custom'
