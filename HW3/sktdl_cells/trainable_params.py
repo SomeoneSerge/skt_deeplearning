@@ -12,10 +12,10 @@ def headtail(n_head, n_tail):
 
 def all():
     def get(net):
-        return net.named_parameters()
+        return list(net.named_parameters())
     return get
 
 def none():
     def get(net):
-        return dict()
+        return []
     return get

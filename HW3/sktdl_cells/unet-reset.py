@@ -161,6 +161,10 @@ def print_parameternames():
     print(output)
 
 @ex.command(unobserved=True)
+def print_reset_params():
+    pprint.pprint([n for (n,p) in get_reset_named_params(make_model())])
+
+@ex.command(unobserved=True)
 def segment_dir(path, batch_size):
     IMAGE_EXT = re.compile(r'^.*(?<!segmented)(\.jpg|\.png|\.bmp)$')
     cpu = torch.device('cpu')
