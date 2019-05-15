@@ -131,13 +131,13 @@ def cfg0():
     num_epochs = 5
     train_transform = dict(
             degrees=180.,
-            translate=(0.5, 0.5),
-            scale=(.25, 1.75),
-            crop_size=(128, 128))
+            translate=(0.25, 0.25),
+            scale=(2/3, 3/2),
+            crop_size=(150, 150))
     epochs_per_checkpoint = 2
     loss_impl = 'issamlaradji'
-    iou_impl = 'vanilla'
-    threshold = .5
+    iou_impl = 'custom'
+    threshold = .49
     random_init = True
 
 @ex.command(unobserved=True)

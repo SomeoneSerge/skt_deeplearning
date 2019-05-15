@@ -129,9 +129,9 @@ def cfg0():
             crop_size=(64, 64))
     random_init = True
     epochs_per_checkpoint = 2
-    loss_impl = 'pytorch_unet'
-    iou_impl = 'vanilla'
-    threshold=.55
+    loss_impl = 'issamlaradji'
+    iou_impl = 'custom'
+    threshold = .49
 
 @ex.command(unobserved=True)
 def print_parameternames():
