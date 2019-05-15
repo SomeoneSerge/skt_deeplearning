@@ -26,26 +26,42 @@ import os
 
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
-RUNS_DIR = os.path.join(MODULE_DIR, 'runs')
+RUNS_DIR = os.path.join(MODULE_DIR, 'unet_reset_runs')
 
 
-ex = sacred.Experiment('sktdl_cells')
+ex = sacred.Experiment('sktdl_cells_unet_reset')
 ex.observers.append(FileStorageObserver.create(RUNS_DIR))
 
 
-@ex.capture
-def get_trainable_named_params(net, trainable_params):
+def extract_params(net, extractors):
     METHODS = dict(
             fixed=param_selection.fixed,
-            headtail=param_selection.headtail
+            headtail=param_selection.headtail,
+            all=param_selection.all,
+            none=param_selection.none,
             )
-    paramsets = (METHODS[tp[0]](*tp[1:])(net) for tp in trainable_params)
+    paramsets = (METHODS[tp[0]](*tp[1:])(net) for tp in extractors)
     params = ((n, p) for pset in paramsets for n, p in pset)
     params = collections.OrderedDict(params)
     return params.items()
 
-def get_trainable_params(net):
-    return (p for n, p in get_trainable_named_params(net))
+@ex.capture
+def get_device(device):
+    return torch.device(device)
+
+@ex.capture
+def get_trainable_named_params(net, trainable_params):
+    return extract_params(net, trainable_params)
+
+def get_trainable_params(net, *args):
+    return (p for n, p in get_trainable_named_params(net, *args))
+
+@ex.capture
+def get_reset_named_params(net, reset_params):
+    return extract_params(net, reset_params)
+
+def get_reset_params(net, *args):
+    return (p for n, p in get_reset_named_params(net, *args))
 
 @ex.capture
 def make_loss(loss_impl):
@@ -75,20 +91,20 @@ def make_iou(iou_impl, threshold):
     return IMPL[iou_impl]
 
 @ex.capture
-def make_model(weights_path, device, trainable_params, random_init):
+def make_model(weights_path, trainable_params, reset_params):
     net = UNet(3, 1)
     state = torch.load(weights_path, map_location='cpu')
     net.load_state_dict(state)
     for p in net.parameters():
         p.requires_grad_(False)
-    for p in get_trainable_params(net):
-        if random_init:
-            # TODO: different init for translations and rotations
-            stddev = np.prod(p.shape)
-            stddev = np.sqrt(stddev)
-            p.data.normal_(std=1./stddev)
+    for p in get_reset_params(net, reset_params):
+        # TODO: different init for translations and rotations
+        mag = np.prod(p.shape)
+        mag = np.sqrt(mag)
+        p.data.uniform_()/mag
+    for p in get_trainable_params(net, trainable_params):
         p.requires_grad_(True)
-    net.to(torch.device(device))
+    net.to(get_device())
     return net
 
 @ex.capture
@@ -116,8 +132,9 @@ def cfg0():
     batch_size=50
     is_deconv = False
     num_input_channels = 11
-    device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    trainable_params = [('headtail', 2, 2)]
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    trainable_params = [('all', )]
+    reset_params = [('headtail', 2, 2)]
     adam_params = dict(
             lr=1e-3,
             betas=(.9, .99))
@@ -127,7 +144,6 @@ def cfg0():
             translate=(1., 1.),
             scale=(.9, 1.1),
             crop_size=(64, 64))
-    random_init = True
     epochs_per_checkpoint = 2
     loss_impl = 'issamlaradji'
     iou_impl = 'custom'
@@ -145,11 +161,10 @@ def print_parameternames():
     print(output)
 
 @ex.command(unobserved=True)
-def segment_dir(path, batch_size, device):
+def segment_dir(path, batch_size):
     IMAGE_EXT = re.compile(r'^.*(?<!segmented)(\.jpg|\.png|\.bmp)$')
-    device = torch.device(device)
     cpu = torch.device('cpu')
-    model = make_model(trainable_params=[], random_init=False)
+    model = make_model(trainable_params=[], reset_params=[])
     model.eval()
     cells = [
             os.path.join(dirname, filename)
@@ -160,7 +175,7 @@ def segment_dir(path, batch_size, device):
     with torch.no_grad():
         for filepath in cells:
             X = transforms.functional.to_tensor(Image.open(filepath).convert('RGB'))
-            X = X.to(device)
+            X = X.to(get_device())
             X = X.unsqueeze(0)
             y = model(X).squeeze(0).squeeze(0).to(cpu).numpy()
             y = (y * 255).astype(np.uint8)
@@ -170,12 +185,11 @@ def segment_dir(path, batch_size, device):
 
 
 @ex.automain
-def main(device, num_epochs, epochs_per_checkpoint, _run):
+def main(num_epochs, epochs_per_checkpoint, _run):
     model = make_model()
     dataloader_train = make_data('train')
     dataloader_val = make_data('val')
     optimizer = make_optimizer(model)
-    device = torch.device(device)
     loss = make_loss()
     iou = make_iou()
     EXPERIMENT_DIR = os.path.join(RUNS_DIR, str(_run._id))
@@ -188,7 +202,7 @@ def main(device, num_epochs, epochs_per_checkpoint, _run):
           optimizer,
           loss,
           iou,
-          device,
+          get_device(),
           num_epochs,
           log=log,
           weights_dir=EXPERIMENT_DIR,

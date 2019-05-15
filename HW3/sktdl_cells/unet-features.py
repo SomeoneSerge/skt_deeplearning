@@ -31,7 +31,7 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 RUNS_DIR = os.path.join(MODULE_DIR, 'unet_as_extractor_runs')
 
 
-ex = sacred.Experiment('sktdl_cells')
+ex = sacred.Experiment('sktdl_cells_unet_as_extractor')
 ex.observers.append(FileStorageObserver.create(RUNS_DIR))
 
 

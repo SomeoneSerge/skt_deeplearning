@@ -1,5 +1,6 @@
 import os
 import re
+import random
 from torchvision import transforms
 from torchvision.transforms import functional as TF
 import torch.utils.data as data
@@ -39,12 +40,16 @@ class CellsTransform:
         crop_params = transforms.RandomCrop.get_params(x, **self.common_crop)
         # TODO: possibly some custom ops different for x and y
         x, y = TF.crop(x, *crop_params), TF.crop(y, *crop_params)
+        flip = random.random() < 0.5
+        if flip:
+            x, y = TF.vflip(x), TF.vflip(y)
         # RETURNS PIL Image
         return x, y
     def __repr__(self):
         return pprint.pformat(dict(
             common_affine=self.common_affine,
             common_crop=self.common_crop,
+            vflip_prob=0.5,
             ))
 
 class CellsSegmentation(data.Dataset):

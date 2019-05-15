@@ -9,3 +9,13 @@ def headtail(n_head, n_tail):
         take_first = min(n_head, len(pp) - n_tail)
         return pp[:take_first] + pp[-n_tail:]
     return get
+
+def all():
+    def get(net):
+        return net.named_parameters()
+    return get
+
+def none():
+    def get(net):
+        return dict()
+    return get
