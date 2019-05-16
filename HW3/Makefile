@@ -12,8 +12,9 @@ install_self:
 	python setup.py develop
 
 pull:
-	git pull
-	git submodule update
+	[[ -d ../.git ]] && \
+		git pull && \
+		git submodule update
 
 # losses.py:
 # 	# Got diceloss
