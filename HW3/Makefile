@@ -1,7 +1,7 @@
 .PHONY: pull data install_self
 
 
-all: pull .cells.dataset .requirements install_self
+all: .cells.dataset .requirements install_self
 
 
 .requirements: requirements.txt
