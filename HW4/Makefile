@@ -1,5 +1,8 @@
 .PHONY: pull
 
+all: Train_rev1.csv
+
+
 pull:
 	git pull
 
