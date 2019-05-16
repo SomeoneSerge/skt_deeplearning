@@ -22,11 +22,7 @@ class CellsTransform:
             degrees,
             translate,
             scale,
-            crop_size,
-            brightness=.5,
-            contrast=.5,
-            saturation=.5,
-            hue=.5):
+            crop_size):
         if isinstance(scale, float):
             scale = (scale, scale)
         self.common_affine = dict(
@@ -35,11 +31,6 @@ class CellsTransform:
                 scale_ranges=_mkrange(scale),
                 shears=None)
         self.common_crop = dict(output_size=_mkrange(crop_size))
-        self.color_params = dict(
-                brightness=_mkrange(brightness),
-                contrast=_mkrange(contrast),
-                saturation=_mkrange(saturation),
-                hue=_mkrange(hue),)
         self.to_tensor = transforms.ToTensor()
     def __call__(self, x, y):
         affine_params = transforms.RandomAffine.get_params(
@@ -52,9 +43,6 @@ class CellsTransform:
         flip = random.random() < 0.5
         if flip:
             x, y = TF.vflip(x), TF.vflip(y)
-        # TODO: PIL only works with grayscaly images...
-        # color_transform = transforms.ColorJitter.get_params(**self.color_params)
-        # x, y = color_transform(x), color_transform(y)
         # RETURNS PIL Image
         return x, y
     def __repr__(self):
