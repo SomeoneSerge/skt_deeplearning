@@ -69,8 +69,7 @@ if __name__ == '__main__':
             '--images-path',
             default='tiny-imagenet-200/val')
     p_eval.set_defaults(cmd=cmd_evaluate)
-    args = parser.parse_args()
-    p_archi = subparsers.add_parser('print-architecture')
+    p_archi = subparsers.add_parser('architecture')
     p_archi.set_defaults(cmd=cmd_print_architecture)
 
     args = parser.parse_args()
