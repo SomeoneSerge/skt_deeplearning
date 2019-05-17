@@ -22,7 +22,7 @@ def make_model():
             resblock_strides=(1, 2, 3),
             widen_factor=4,
             drop_rate=.2)
-    model = torch.nn.Sequential(model, torch.nn.LogSoftmax(-1))
+    model = torch.nn.Sequential(model, torch.nn.LogSoftmax(-1)).to(device())
     return model
 
 def evaluate(model, data):
@@ -64,7 +64,7 @@ if __name__ == '__main__':
     p_eval.add_argument(
             '--batch_size',
             type=int,
-            default=1)
+            default=25)
     p_eval.add_argument(
             '--images-path',
             default='tiny-imagenet-200/val')
